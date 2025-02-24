@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-app-a
+  namespace: argocd # ArgoCD resource is created in the 'argocd' namespace
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/juanroldan1989/gitops-manifests-repo'
+    path: 'manifests/app-a'
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: app-a # Application resources deployed here
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

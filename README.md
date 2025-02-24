@@ -1,7 +1,12 @@
 # gitops-manifests-repo
 
 - This repository only contains Kubernetes `applications` manifests.
-- A specific manifest (e.g.: `/manifests/app-a/deployment.yaml` -> `image` field) is updated based on its counterpart `Github Actions` pipeline being completed within the `gitops-source-repo`.
+
+- This repository gets a Pull Request created **on-demand** by [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo) every time a developer pushes a new version of an `application` in that repository.
+
+- Within this pull request, a specific manifest (e.g.: `/manifests/app-a/deployment.yaml` -> `image` field) is updated.
+
+- When this pull request is merged, `ArgoCD` detects this change within the `manifests/app-*` folder and syncs this application resources within the K8S cluster.
 
 ## Provision Infrastructure
 
