@@ -56,3 +56,11 @@ Using ArgoCD to implement GitOps offers several benefits:
 - Rollback and Auditing: Since all changes to your Kubernetes manifests are version-controlled in Git, you can easily roll back to a previous state if something goes wrong. Additionally, the Git history provides an audit trail of all changes made.
 
 - Improved Developer Experience: Developers focus on writing code and updating manifests, while ArgoCD handles the deployment process, simplifying the overall experience.
+
+## Contributing
+
+Contributions are welcome and greatly appreciated! If you would like to contribute to this project, please follow the guidelines within [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+This project is licensed under the terms of the [MIT License](LICENSE).
