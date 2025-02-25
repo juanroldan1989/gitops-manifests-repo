@@ -4,7 +4,7 @@ include "root" {
 }
 
 terraform {
-  source = "${get_parent_terragrunt_dir()}/modules//eks/cluster"
+  source = "git::https://github.com/juanroldan1989/infra-modules.git//modules/eks/cluster"
 }
 
 dependency "networking" {
@@ -18,7 +18,8 @@ inputs = {
   env            = include.root.locals.env
 
   # custom
-  eks_name        = "eks-a"
-  private_subnets = dependency.networking.outputs.subnet_ids
-  eks_version     = "1.30"
+  vpc_id                   = dependency.networking.outputs.vpc_id
+  subnet_ids               = dependency.networking.outputs.subnet_ids
+  control_plane_subnet_ids = dependency.networking.outputs.intra_subnet_ids
+  eks_name                 = "eks-cluster-a"
 }

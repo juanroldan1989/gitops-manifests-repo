@@ -6,9 +6,8 @@
 
 ## This script provisions resources for:
 
-## Environment: "qa"
+## Environment: "prod"
 ## Cluster: "eks-cluster-a"
-## Applications: "greeter", "fareweller"
 
 ## Networking resources: VPC, subnets, route tables, internet gateway, security groups, NAT gateway
 
@@ -18,8 +17,6 @@ apply () {
 
 destroy () {
 dirs=(
-  "./clusters/eks-cluster-a/apps"
-  "./clusters/eks-cluster-a/namespaces"
   "./clusters/eks-cluster-a/addons"
   "./clusters/eks-cluster-a/cluster"
   "./networking"

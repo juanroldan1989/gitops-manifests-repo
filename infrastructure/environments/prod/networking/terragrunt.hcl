@@ -4,7 +4,7 @@ include "root" {
 }
 
 terraform {
-  source = "${get_parent_terragrunt_dir()}/modules//networking"
+  source = "git::https://github.com/juanroldan1989/infra-modules.git//modules/networking"
 }
 
 inputs = {

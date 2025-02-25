@@ -1,0 +1,14 @@
+### Terraform ###
+.terraform
+*.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+infra/.DS_Store
+
+### Terragrunt ###
+.terragrunt-cache
+.terragrunt-debug.tfvars
+.terragrunt.hcl
+
+### Secrets ###
+secrets.auto.tfvars
