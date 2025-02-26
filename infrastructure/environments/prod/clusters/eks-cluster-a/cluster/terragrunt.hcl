@@ -9,6 +9,9 @@ terraform {
 
 dependency "networking" {
   config_path = find_in_parent_folders("networking")
+  mock_outputs = {
+    vpc_id = "vpc-1234567890abcdef0"
+  }
 }
 
 inputs = {

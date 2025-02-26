@@ -14,5 +14,5 @@ inputs = {
   env            = include.root.locals.env
 
   # custom
-  eks_name = "eks-a"
+  eks_name = "eks-cluster-a"
 }
