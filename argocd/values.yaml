@@ -1,32 +1,7 @@
-# For the Argo CD server component
-server:
-  # nodeSelector:
-    # eks-managed: "true"
+# https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
+global:
   tolerations:
     - key: "CriticalAddonsOnly"
       operator: "Equal"
       value: "true"
       effect: "NoSchedule"
-
-# For the application controller
-controller:
-  # nodeSelector:
-  #   eks-managed: "true"
-  tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
-
-# For the repo server
-repoServer:
-  # nodeSelector:
-  #   eks-managed: "true"
-  tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
-
-# Optionally, if using the dex server or any other component,
-# add similar configuration sections as needed.
