@@ -1,16 +1,27 @@
 # gitops-manifests-repo
 
-- This repository only contains Kubernetes `applications` manifests.
+![how-does-gitops-work](https://github.com/user-attachments/assets/46b60c9a-3c8b-4ecc-a853-a13debff154b)
 
-- This repository gets a Pull Request created **on-demand** by [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo) every time a developer pushes a new version of an `application` in that repository.
+<hr>
+
+- This repository contains Kubernetes `applications` manifests.
+
+- This repository gets a Pull Request created **on-demand** by [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo) every time a Github Actions workflow is successfully completed there.
 
 - Within this pull request, a specific manifest (e.g.: `/manifests/app-a/deployment.yaml` -> `image` field) is updated.
 
 - When this pull request is merged, `ArgoCD` detects this change within the `manifests/app-*` folder and syncs this application resources within the K8S cluster.
 
-## Provision Infrastructure
+<hr>
 
-Terraform + Terragrunt + AWS
+![gitops-workflow](https://github.com/user-attachments/assets/e944156e-2ab3-41db-a9cb-4892aa849307)
+
+
+## Infrastructure
+
+- This repository provisions: `networking`, `eks`, `karpenter` and `argocd` components.
+- Infrastructure modules are fetched from [infra-modules](https://github.com/juanroldan1989/infra-modules/) repository.
+- Terraform + Terragrunt + AWS
 
 ### Networking
 
@@ -22,11 +33,13 @@ Provisioned via Terragrunt script.
 
 ## ArgoCD
 
-ArgoCD is a declarative, GitOps-based continuous delivery tool for Kubernetes.
+- Provisioned via Helm chart.
 
-It allows to manage Kubernetes applications by storing the desired state of the cluster in a Git repository and automating the process of syncing that state to the actual cluster.
+- ArgoCD is a declarative, GitOps-based continuous delivery tool for Kubernetes.
 
-In a GitOps workflow, ArgoCD acts as **the bridge between applications code and the Kubernetes infrastructure**, ensuring that the changes in your Git repository are always reflected in the cluster.
+- It allows to manage Kubernetes applications by storing the desired state of the cluster in a Git repository and automating the process of syncing that state to the actual cluster.
+
+- In a GitOps workflow, ArgoCD acts as **the bridge between applications code and the Kubernetes infrastructure**, ensuring that the changes in your Git repository are always reflected in the cluster.
 
 ### Workflow Overview
 
