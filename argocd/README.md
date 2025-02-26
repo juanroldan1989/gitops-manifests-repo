@@ -3,10 +3,12 @@
 ## Step 1: Create the ArgoCD Namespace
 
 ```bash
-kubectl apply -f argocd-namespace.yaml
+kubectl apply -f namespace.yaml
 ```
 
 ## Step 2: Deploy ArgoCD
+
+### Default installation
 
 - ArgoCD provides an official installation manifest that deploys all the necessary components like the API server, controller, repository server, and UI.
 
@@ -14,6 +16,33 @@ kubectl apply -f argocd-namespace.yaml
 
 ```bash
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+- Removing ArgoCD resources
+
+```bash
+kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl delete namespace argocd
+```
+
+### Custom installation (only in specific default managed node groups)
+
+- To ensure that ArgoCD’s pods are scheduled on our `EKS` managed node groups (and not on nodes provisioned by Karpenter):
+
+```bash
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+
+helm install argocd argo/argo-cd \
+  --namespace argocd --create-namespace \
+  -f argocd-values.yaml
+```
+
+- Removing ArgoCD resources
+
+```bash
+helm uninstall argocd --namespace argocd
+kubectl delete namespace argocd
 ```
 
 ## Step 3: Expose ArgoCD using an Ingress
@@ -43,7 +72,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 4. Login using the username: `admin` and the decoded password.
 
-## Step 5: Connect the gitops-manifests-repo to ArgoCD
+## Step 5: Connect the `gitops-manifests-repo` to ArgoCD
 
 1. Create a manifest file for the ArgoCD Application: `app-a.yaml`
 
@@ -65,6 +94,10 @@ kubectl get applications -n argocd
 
 Automating Changes from the Source Repository:
 
-- When changes are pushed to the `gitops-source-repo`, its CI/CD pipeline updates the manifests in the `gitops-manifests-repo`.
+1. Changes are pushed to the `gitops-source-repo`.
 
-- `ArgoCD` will automatically **detect these changes and sync them** to our EKS cluster, ensuring the **cluster state always matches the state defined** in the `gitops-manifests-repo`.
+2. Once its `CI/CD` pipeline completes succesfully, it creates a Pull Request updating manifests in the `gitops-manifests-repo`.
+
+3. Within `gitops-manifests-repo`, once the new Pull Request is merged, `ArgoCD` automatically **detects these changes and syncs them** to our `EKS` cluster.
+
+4. Ensuring the **EKS cluster state always matches the state defined** in our `gitops-manifests-repo`.
