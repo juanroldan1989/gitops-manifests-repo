@@ -6,7 +6,7 @@ metadata:
   labels:
     app: nginx
 spec:
-  replicas: 3
+  replicas: 3 # should match minReplicas in manifests/app-a/hpa.yaml
   selector:
     matchLabels:
       app: nginx

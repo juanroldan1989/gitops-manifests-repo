@@ -27,18 +27,22 @@ kubectl delete namespace argocd
 
 ### Custom installation (only in specific default managed node groups)
 
-- To ensure that ArgoCD’s pods are scheduled on our `EKS` managed node groups (and not on nodes provisioned by Karpenter):
+1. To ensure that ArgoCD’s pods are scheduled on our `EKS` managed node groups (and not on nodes provisioned by Karpenter):
 
 ```bash
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
-helm install argocd argo/argo-cd \
-  --namespace argocd --create-namespace \
-  -f argocd-values.yaml
+helm install argocd argo/argo-cd --namespace argocd --create-namespace -f values.yaml
 ```
 
-- Removing ArgoCD resources
+2. Enable ingress in the values file `server.ingress.enabled` and either:
+
+- Add the annotation for ssl passthrough: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
+
+- Set the `configs.params."server.insecure"` in the values file and terminate SSL at your ingress: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-multiple-ingress-objects-and-hosts
+
+3. Removing `ArgoCD` resources:
 
 ```bash
 helm uninstall argocd --namespace argocd
