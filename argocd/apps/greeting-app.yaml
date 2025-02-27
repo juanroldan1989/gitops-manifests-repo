@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-greeting-app
+  namespace: argocd # ArgoCD resource is created in the 'argocd' namespace
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/juanroldan1989/gitops-manifests-repo'
+    path: 'manifests/greeting-app'
+    targetRevision: HEAD
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: greeting-app # Application resources deployed here
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

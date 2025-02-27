@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: nginx-hpa
-  namespace: app-a
+  name: greeting
+  namespace: greeter-app
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: nginx-deployment
+    name: greeting
   minReplicas: 3
   maxReplicas: 10
   metrics:
