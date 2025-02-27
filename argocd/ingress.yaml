@@ -4,11 +4,15 @@ metadata:
   name: argocd-server-ingress
   namespace: argocd
   annotations:
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/certificate-arn: <your-certificate-arn>
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
 spec:
+  ingressClassName: alb
   rules:
-  - host: argocd.local
-    http:
+  - http:
       paths:
       - path: /
         pathType: Prefix

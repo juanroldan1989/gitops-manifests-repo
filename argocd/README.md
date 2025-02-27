@@ -57,6 +57,8 @@ kubectl delete namespace argocd
 kubectl apply -f ingress.yaml
 ```
 
+- Enforce HTTPS connections within external ALB -> [steps](/argocd/INGRESS.md)
+
 ## Step 4: Access the ArgoCD UI
 
 1. Get the ArgoCD Admin Password:
@@ -105,3 +107,22 @@ Automating Changes from the Source Repository:
 3. Within `gitops-manifests-repo`, once the new Pull Request is merged, `ArgoCD` automatically **detects these changes and syncs them** to our `EKS` cluster.
 
 4. Ensuring the **EKS cluster state always matches the state defined** in our `gitops-manifests-repo`.
+
+## Step 7: Removing everything
+
+```bash
+# ArgoCD Apps
+kubectl delete -R -f argocd
+```
+
+```bash
+# EKS Apps
+kubectl delete -R -f manifests
+```
+
+```bash
+# Infrastructure
+cd infrastructure/environments/prod
+
+./infra-management.sh destroy
+```
