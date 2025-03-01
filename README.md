@@ -20,13 +20,13 @@ cd infrastructure/environments/prod
 
 2. Install ArgoCD in EKS cluster with [these steps](/argocd/README.md)
 
-3. `app-a` from `manifests` folder is automatically provisioned by ArgoCD afterwards.
+3. ArgoCD Apps (`greeter-app`,  `greeting-app`, `name-app`) from `manifests` folder will be automatically provisioned by ArgoCD afterwards.
 
-4. Adjust `app-a` application source code within [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo). Create Github Pull Request `Changes to app-a: Landing page`, review, approve and merge it.
+4. Adjust `greeter-app` application source code within [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo). Create Github Pull Request `Changes to app-a: Landing page`, review, approve and merge it.
 
 5. Once Pull Request is merged, pipeline creates a new Pull Request `app-a: new image version` within the manifests repository: [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo)
 
-6. Once this Pull Request `app-a: new image version` is merged, `ArgoCD` syncs up the new `app-a` image version within the EKS cluster.
+6. Once this Pull Request `greeter-app: new image version` is merged, `ArgoCD` syncs up the new `greeter-app` image version within the EKS cluster.
 
 ## Workflow
 
@@ -36,11 +36,11 @@ The repository is **automatically updated** via pull requests triggered **on-dem
 
 ### Manifest Updates
 
-For example, the **image** field in `/manifests/app-a/deployment.yaml` is updated as part of this automated process.
+For example, the **image** field in `/manifests/greeter-app/deployment.yaml` is updated as part of this automated process.
 
 ### Continuous Delivery
 
-Once a pull request is merged, `ArgoCD` detects changes in the `manifests/app-*` folders and synchronizes the respective application resources in the Kubernetes cluster.
+Once a pull request is merged, `ArgoCD` detects changes in the `manifests/*` folders and synchronizes the respective application resources in the Kubernetes cluster.
 
 ## Infrastructure
 
@@ -123,6 +123,10 @@ Using ArgoCD to implement GitOps offers several benefits:
 3. **Rollback and Auditing:** Since all changes to your Kubernetes manifests are version-controlled in Git, you can easily roll back to a previous state if something goes wrong. Additionally, the Git history provides an audit trail of all changes made.
 
 4. **Improved Developer Experience:** Developers focus on writing code and updating manifests, while ArgoCD handles the deployment process, simplifying the overall experience.
+
+## Disaster Recovery
+
+These steps are meant to fully restore a Kubernetes cluster -> [steps](/RECOVERY.md)
 
 ## Contributing
 
