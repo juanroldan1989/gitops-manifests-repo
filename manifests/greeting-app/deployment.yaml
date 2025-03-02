@@ -6,7 +6,7 @@ metadata:
   labels:
     app: greeting
 spec:
-  replicas: 3 # should match minReplicas in manifests/app-a/hpa.yaml
+  replicas: 3 # should match minReplicas in HPA
   selector:
     matchLabels:
       app: greeting
@@ -28,3 +28,19 @@ spec:
           requests:
             cpu: "250m"
             memory: "256Mi"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 2
+          failureThreshold: 3
