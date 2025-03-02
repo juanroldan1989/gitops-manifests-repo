@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: greeting-ingress-policy
+  namespace: greeter-app
+spec:
+  podSelector:
+    matchLabels:
+      app: greeting
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: greeter
