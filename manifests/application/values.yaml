@@ -1,0 +1,47 @@
+# Global settings for the application
+namespace: greeter-app
+app:
+  name: greeter
+  image: juanroldan1989/greeter:0.0.1
+  port: 5000
+
+# Deployment settings
+replicaCount: 3
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+
+# Probe configuration
+readinessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+# HPA configuration
+hpa:
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Ingress configuration (external apps)
+ingress:
+  enabled: false # set to true for external apps
+  annotations: {}
+  hosts:
+    - host: yourdomain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: [] # configure TLS if needed

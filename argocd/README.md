@@ -80,12 +80,12 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 ## Step 5: Connect the `gitops-manifests-repo` to ArgoCD
 
-1. Create a manifest file for the ArgoCD Application: `app-a.yaml`
+1. Create a manifest file for the ArgoCD Application: `argocd/apps/greeter-app.yaml`
 
-2. Apply the ArgoCD application:
+2. Provision the ArgoCD application:
 
 ```bash
-kubectl apply -f app-a.yaml
+kubectl apply -f greeter-app.yaml
 ```
 
 3. Verify that the Application is Synced:
@@ -94,7 +94,7 @@ kubectl apply -f app-a.yaml
 kubectl get applications -n argocd
 ```
 
-4. Check the ArgoCD UI to ensure that application "A" has been deployed and is in sync.
+4. Check the ArgoCD UI to ensure that application "Greeter" has been deployed and is in sync.
 
 ## Step 6: Automating Updates via GitOps
 

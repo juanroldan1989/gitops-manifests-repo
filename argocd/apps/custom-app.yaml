@@ -1,17 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd-name-app
+  name: argocd-custom-app
   namespace: argocd # ArgoCD resource is created in the 'argocd' namespace
 spec:
   project: default
   source:
     repoURL: 'https://github.com/juanroldan1989/gitops-manifests-repo'
-    path: 'manifests/name-app'
-    targetRevision: HEAD
+    targetRevision: main
+    path: manifests/application # path to Helm chart
+    helm:
+      valueFiles:
+        - ../custom-app/values.yaml  # overrides for custom app
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: greeter-app # Application resources deployed here
+    namespace: custom-app  # Application resources deployed here
   syncPolicy:
     automated:
       prune: true
