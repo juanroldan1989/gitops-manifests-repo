@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-custom-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/your-org/your-repo.git'
+    targetRevision: main
+    path: manifests/application # path to helm chart
+    helm:
+      valueFiles:
+        - manifests/application/values.yaml # default values
+        - manifests/custom-app/values.yaml  # overrides for custom app
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: custom-app  # the namespace where the greeting app should be deployed
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
