@@ -11,7 +11,7 @@ spec:
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: greeting-app # Application resources deployed here
+    namespace: greeter-app # Application resources deployed here
   syncPolicy:
     automated:
       prune: true
