@@ -7,8 +7,11 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/juanroldan1989/gitops-manifests-repo'
-    path: 'manifests/greeting-app'
-    targetRevision: HEAD
+    targetRevision: main
+    path: manifests/application # path to Helm chart
+    helm:
+      valueFiles:
+        - ../greeting-app/values.yaml  # overrides for `name` app
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: greeter-app # Application resources deployed here

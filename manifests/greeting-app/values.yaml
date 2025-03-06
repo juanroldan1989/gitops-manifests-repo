@@ -1,0 +1,11 @@
+namespace: greeter-app
+app:
+  name: greeting
+  image: juanroldan1989/greeting:0.0.1
+  port: 5002
+
+replicaCount: 3
+
+hpa:
+  minReplicas: 3
+  maxReplicas: 5
