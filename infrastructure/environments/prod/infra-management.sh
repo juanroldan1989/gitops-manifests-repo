@@ -18,6 +18,7 @@ apply () {
 destroy () {
 dirs=(
   "./clusters/eks-cluster-a/addons"
+  "./clusters/eks-cluster-a/karpenter"
   "./clusters/eks-cluster-a/cluster"
   "./networking"
 )
