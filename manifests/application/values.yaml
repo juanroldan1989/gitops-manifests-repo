@@ -1,8 +1,8 @@
 # Global settings for the application
-namespace: greeter-app
+namespace: sample-namespace
 app:
-  name: greeter
-  image: juanroldan1989/greeter:0.0.1
+  name: sample-app
+  image: juanroldan1989/sample-image:0.0.1
   port: 5000
 
 # Deployment settings

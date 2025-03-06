@@ -11,7 +11,7 @@ spec:
     path: manifests/application # path to Helm chart
     helm:
       valueFiles:
-        - ../custom-app/values.yaml  # overrides for custom app
+        - ../custom-app/values.yaml  # overrides for `custom` app
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: custom-app  # Application resources deployed here
