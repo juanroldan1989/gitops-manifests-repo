@@ -107,7 +107,7 @@ Using ArgoCD to implement GitOps offers several benefits:
 
 ## Disaster Recovery
 
-These steps are meant to fully restore a Kubernetes cluster -> [steps](RECOVERY.md)
+Steps to fully restore the entire platform (Infrastructure + K8S Cluster + Applications) -> [steps](RECOVERY.md)
 
 ## Contributing
 

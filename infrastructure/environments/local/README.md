@@ -14,7 +14,9 @@ If you want to quickly test your apps on a local Kubernetes cluster, you can use
 brew install kind
 ```
 
-## Create a Cluster Configuration File (Optional)
+## Provision infrastructure
+
+### Create a Cluster Configuration File (Optional)
 
 You can create a configuration file to customize your cluster. For example, create a file named kind-config.yaml:
 
@@ -36,7 +38,7 @@ nodes:
 
 This config maps common HTTP/HTTPS ports from your local machine to the cluster.
 
-## Create the Local Cluster
+### Create the Local Cluster
 
 If you’re using a configuration file:
 
@@ -50,7 +52,7 @@ Or, to create a default cluster:
 kind create cluster --name local-eks
 ```
 
-## Verify the Cluster is Running
+### Verify the Cluster is Running
 
 Check the cluster status with:
 
@@ -60,7 +62,11 @@ kubectl cluster-info --context kind-local-eks
 
 This command should display information about your local Kubernetes API server.
 
-## Deploy Applications
+### Deploy ArgoCD & ArgoCD Applications
+
+Same instructions as within `argocd` folder.
+
+### Deploy Applications
 
 With your local cluster up and running, you can now deploy your Kubernetes manifests (or `ArgoCD` if you wish to test the GitOps workflow locally). For example:
 
@@ -69,3 +75,10 @@ kubectl apply -R -f manifests
 ```
 
 Follow the same process as in your production workflow, adjusting as necessary for a local environment.
+
+## Remove infrastructure
+
+1. Remove ArgoCD Applications
+2. K8S Application resources (Deployment, Ingress, Service, HPA) are removed automatically.
+3. Remove ArgoCD itself.
+4. Delete `kind` cluster
