@@ -45,3 +45,10 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls: [] # configure TLS if needed
+
+# Network policy configuration
+networkPolicy:
+  enabled: false # set to true to enable network policy
+  name: sample-ingress-policy
+  appLabel: app-1 # app label to match
+  allowedAppLabel: app-2 # app label to allow traffic from

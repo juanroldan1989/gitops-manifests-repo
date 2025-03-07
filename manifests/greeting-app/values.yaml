@@ -9,3 +9,9 @@ replicaCount: 3
 hpa:
   minReplicas: 3
   maxReplicas: 5
+
+networkPolicy:
+  enabled: true
+  name: greeting-ingress-policy
+  appLabel: greeting
+  allowedAppLabel: greeter
