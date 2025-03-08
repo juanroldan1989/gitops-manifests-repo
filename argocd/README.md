@@ -91,7 +91,12 @@ application.argoproj.io/argocd-greeting-app created
 application.argoproj.io/argocd-name-app created
 ```
 
-[screenshot here]
+<img width="1482" alt="Screenshot 2025-03-08 at 11 57 51" src="https://github.com/user-attachments/assets/70b89e3f-5fc7-47b7-9b87-7b6575111841" />
+
+<img width="1640" alt="Screenshot 2025-03-08 at 11 55 30" src="https://github.com/user-attachments/assets/97aa2377-8284-4235-a576-1947b350fe00" />
+
+<img width="829" alt="Screenshot 2025-03-08 at 11 57 10" src="https://github.com/user-attachments/assets/e87aaa06-c6d8-4cef-a81c-a433dceba72f" />
+
 
 ## Step 5: Automating Updates via GitOps
 
