@@ -10,6 +10,8 @@ kubectl apply -f namespace.yaml
 
 ### Default installation
 
+- Ideal for `local` development in `local` environment: `/infrastructure/environments/local`.
+
 - ArgoCD provides an official installation manifest that deploys all the necessary components like the API server, controller, repository server, and UI.
 
 - To deploy ArgoCD, use the following command:

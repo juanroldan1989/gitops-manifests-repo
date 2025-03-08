@@ -64,7 +64,7 @@ This command should display information about your local Kubernetes API server.
 
 ### Deploy ArgoCD & ArgoCD Applications
 
-Same instructions as within `argocd` folder.
+Same instructions as within [argocd](/argocd/README.md) folder
 
 ### Deploy Applications
 

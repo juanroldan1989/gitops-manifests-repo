@@ -11,7 +11,7 @@ spec:
     path: manifests/application # path to Helm chart
     helm:
       valueFiles:
-        - ../greeting-app/values.yaml  # overrides for `name` app
+        - ../greeting-app/values.yaml  # overrides for `greeting` app
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: greeter-app # Application resources deployed here

@@ -1,0 +1,17 @@
+namespace: greeter-app
+app:
+  name: greeter
+  image: juanroldan1989/greeter:0.0.1
+  port: 5000
+
+replicaCount: 3
+
+hpa:
+  minReplicas: 3
+  maxReplicas: 10
+
+ingress:
+  enabled: true
+
+resourceQuota:
+  enabled: true
