@@ -3,15 +3,14 @@
 ![how-does-gitops-work](https://github.com/user-attachments/assets/46b60c9a-3c8b-4ecc-a853-a13debff154b)
 
 1. [Workflow Overview](#workflow_overview)
+1. [How It Works](#how_it_works)
 1. [Setup](#setup)
-1. [Infrastructure](#infrastructure)
-1. [ArgoCD](#argocd)
-1. [Benefits](#benefits)
+1. [Key Benefits](#key_benefits)
 1. [Disaster Recovery](#disaster_recovery)
 1. [Contributing](#contributing)
 1. [License](#license)
 
-## Summary
+<hr>
 
 - This repository contains `Kubernetes` manifests for our `GitOps` workflow.
 - Changes to these manifests are managed declaratively via `Git` and deployed automatically using `ArgoCD`.
@@ -60,7 +59,7 @@ Our GitOps workflow is built on **two core repositories:**
 
 ## Setup
 
-### Provision Infrastructure
+### 1. Provision Infrastructure
 
 ```bash
 cd infrastructure/environments/prod
@@ -79,15 +78,15 @@ This script uses:
 - **Tools:** `Terraform` and `Terragrunt`.
 - **Cloud Provider:** `AWS`.
 
-### Infrastructure State Management
+### 2. Infrastructure State Management
 
 For details instructions in 2 ways of handling infrastructure's **state**, please check [this guide](/INFRA_STATE.md)
 
-### Install ArgoCD in your `EKS` Cluster
+### 3. Install ArgoCD in your `EKS` Cluster
 
 Follow the steps in the [ArgoCD setup guide](/argocd/README.md)
 
-### Source Code repo: Application Development & Deployment
+### 4. Source Code repo: Application Development & Deployment
 
 - Developers update source code in [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo) and create a pull request (e.g., `"Changes to app-a: Landing page"`).
 - After merging, the pipeline will generate a pull request in [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo) for updating the manifest with the new `image` version.

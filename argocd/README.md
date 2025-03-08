@@ -1,12 +1,12 @@
 # ArgoCD Installation on EKS Cluster
 
-## Step 1: Create the ArgoCD Namespace
+## 1. Create the ArgoCD Namespace
 
 ```bash
 kubectl apply -f namespace.yaml
 ```
 
-## Step 2: Deploy ArgoCD
+## 2. Deploy ArgoCD
 
 ### Default installation
 
@@ -51,7 +51,7 @@ helm uninstall argocd --namespace argocd
 kubectl delete namespace argocd
 ```
 
-## Step 3: Expose ArgoCD using an Ingress
+## 3. Expose ArgoCD using an Ingress
 
 - Ingress configuration to expose the ArgoCD UI externally
 
@@ -61,7 +61,7 @@ kubectl apply -f ingress.yaml
 
 - Enforce HTTPS connections within external ALB -> [steps](/argocd/INGRESS.md)
 
-## Step 4: Access the ArgoCD UI
+## 4. Access the ArgoCD UI
 
 1. Get the ArgoCD Admin Password:
 
@@ -80,7 +80,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 4. Login using the username: `admin` and the decoded password.
 
-## Step 5: Provision Applications inside K8S Cluster using ArgoCD
+## 5. Provision Applications inside K8S Cluster using ArgoCD
 
 ```bash
 cd argocd
@@ -100,7 +100,7 @@ application.argoproj.io/argocd-name-app created
 <img width="829" alt="Screenshot 2025-03-08 at 11 57 10" src="https://github.com/user-attachments/assets/e87aaa06-c6d8-4cef-a81c-a433dceba72f" />
 
 
-## Step 5: Automating Updates via GitOps
+## 6. Automating Updates via GitOps
 
 Automating Changes from the Source Repository:
 
@@ -112,7 +112,7 @@ Automating Changes from the Source Repository:
 
 4. Ensuring the **EKS cluster state always matches the state defined** in our `gitops-manifests-repo`.
 
-## Step 6: Removing resources
+## 7. Removing resources
 
 ### ArgoCD Applications
 
