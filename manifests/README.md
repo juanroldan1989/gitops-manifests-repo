@@ -2,14 +2,6 @@
 
 There are 2 ways to provision Kuberentes applications:
 
-## Individual YAML files
-
-```bash
-kubectl apply -R -f manifests/greeting-app
-kubectl apply -R -f manifests/name-app
-kubectl apply -R -f manifests/greeter-app
-```
-
 ## Helm
 
 1. Create namespace for application's resources:
@@ -70,3 +62,9 @@ release "custom-app" uninstalled
 kubectl get all -n custom-app
 No resources found in custom-app namespace.
 ```
+
+## ArgoCD Applications
+
+Use `ArgoCD` application to provision your applications within the cluster.
+
+Follow the steps in the [ArgoCD setup guide](/argocd/README.md)
