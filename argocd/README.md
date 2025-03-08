@@ -78,25 +78,22 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 4. Login using the username: `admin` and the decoded password.
 
-## Step 5: Connect the `gitops-manifests-repo` to ArgoCD
-
-1. Create a manifest file for the ArgoCD Application: `argocd/apps/greeter-app.yaml`
-
-2. Provision the ArgoCD application:
+## Step 5: Provision Applications inside K8S Cluster using ArgoCD
 
 ```bash
-kubectl apply -f greeter-app.yaml
+cd argocd
+
+kubectl apply -R -f apps
+
+application.argoproj.io/argocd-custom-app created
+application.argoproj.io/argocd-greeter-app created
+application.argoproj.io/argocd-greeting-app created
+application.argoproj.io/argocd-name-app created
 ```
 
-3. Verify that the Application is Synced:
+[screenshot here]
 
-```bash
-kubectl get applications -n argocd
-```
-
-4. Check the ArgoCD UI to ensure that application "Greeter" has been deployed and is in sync.
-
-## Step 6: Automating Updates via GitOps
+## Step 5: Automating Updates via GitOps
 
 Automating Changes from the Source Repository:
 
@@ -108,20 +105,32 @@ Automating Changes from the Source Repository:
 
 4. Ensuring the **EKS cluster state always matches the state defined** in our `gitops-manifests-repo`.
 
-## Step 7: Removing everything
+## Step 6: Removing resources
+
+### ArgoCD Applications
+
+- ArgoCD UI: Allows engineers to delete `ArgoCD Applications` and their `associated` K8S Applications resources (Deploy, Ingress, Service, HPA).
+
+- `kubectl`: Using this command will only delete `ArgoCD` applications. It **will not** delete associated K8S Applications resources (`finalizers` have to be setup within YAML ArgoCD files).
 
 ```bash
-# ArgoCD Apps
 kubectl delete -R -f argocd
 ```
 
-```bash
-# EKS Apps
-kubectl delete -R -f manifests
-```
+### K8S application resources
+
+- ArgoCD UI: when this option is used, underlying resources have already being deleted. E.g.: (ALBs)
+
+- `kubectl`: Use this command to manually delete all underlying resources:
 
 ```bash
-# Infrastructure
+kubectl delete all -n custom-app
+kubectl delete all -n greeter-app
+```
+
+### Infrastructure
+
+```bash
 cd infrastructure/environments/prod
 
 ./infra-management.sh destroy
