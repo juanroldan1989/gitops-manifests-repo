@@ -79,6 +79,10 @@ This script uses:
 - **Tools:** `Terraform` and `Terragrunt`.
 - **Cloud Provider:** `AWS`.
 
+### Infrastructure State Management
+
+For details instructions in 2 ways of handling infrastructure's **state**, please check [this guide](/INFRA_STATE.md)
+
 ### Install ArgoCD in your `EKS` Cluster
 
 Follow the steps in the [ArgoCD setup guide](/argocd/README.md)

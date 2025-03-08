@@ -1,12 +1,15 @@
-# TODO: provide alternative configuration with S3 as remote state backend
 remote_state {
-  backend = "local"
+  backend = "s3"
   generate = {
     path      = "backend.tf"
-    if_exists = "overwrite_terragrunt"
+    if_exists = "overwrite"
   }
   config = {
-    path = "${path_relative_to_include()}/terraform.tfstate"
+    bucket         = "gitos-manifests-repo"
+    key            = "${path_relative_to_include()}/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "gitops-manifests-repo-lock"
   }
 }
 
