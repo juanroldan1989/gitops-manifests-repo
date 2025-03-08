@@ -1,4 +1,6 @@
 namespace: greeter-app
+createNamespace: true
+
 app:
   name: greeter
   image: juanroldan1989/greeter:0.0.1

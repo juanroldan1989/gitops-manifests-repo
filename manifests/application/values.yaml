@@ -3,6 +3,8 @@
 ############################################
 
 namespace: sample-namespace
+createNamespace: false
+
 app:
   name: sample-app
   image: juanroldan1989/sample-image:0.0.1
