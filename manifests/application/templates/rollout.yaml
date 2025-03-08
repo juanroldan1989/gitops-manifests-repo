@@ -1,13 +1,18 @@
-{{- if not .Values.rollout.enabled }}
-apiVersion: apps/v1
-kind: Deployment
+{{- if .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
-  name: {{ .Values.app.name }}
+  name: {{ .Values.app.name }}-rollout
   namespace: {{ .Values.namespace }}
-  labels:
-    app: {{ .Values.app.name }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    canary:
+      steps:
+      - setWeight: 20
+      - pause: { duration: 10s }
+      - setWeight: 50
+      - pause: { duration: 10s }
   selector:
     matchLabels:
       app: {{ .Values.app.name }}

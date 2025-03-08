@@ -4,14 +4,17 @@ app:
   image: juanroldan1989/name:0.0.1
   port: 5001
 
-replicaCount: 2
+replicaCount: 1
 
 hpa:
-  minReplicas: 2
-  maxReplicas: 5
+  minReplicas: 1
+  maxReplicas: 10
 
 networkPolicy:
   enabled: true
   name: name-ingress-policy
   appLabel: name
   allowedAppLabel: greeter
+
+rollout:
+  enabled: true

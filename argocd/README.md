@@ -1,9 +1,10 @@
-# ArgoCD Installation on EKS Cluster
+# ArgoCD Setup
 
 ## 1. Create the ArgoCD Namespace
 
 ```bash
 kubectl apply -f namespace.yaml
+kubectl create ns argocd
 ```
 
 ## 2. Deploy ArgoCD

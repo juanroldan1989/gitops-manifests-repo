@@ -112,6 +112,16 @@ Using ArgoCD to implement GitOps offers several benefits:
 
 Steps to fully restore the entire platform (Infrastructure + K8S Cluster + Applications) -> [steps](RECOVERY.md)
 
+## Work in progress
+
+- Monitor and Observe: Set up comprehensive monitoring (e.g., Prometheus, Grafana, ELK/EFK stack) and logging to keep track of inter-service communications, performance, and failures.
+
+- Add several applications that rely in N microservices. E.g.: uber-eats
+
+- Implemement ArgoCD Application Set: 1 AppSet -> N Applications. To organise better the UI space and clarity on resources.
+
+- Adopt a Service Mesh: For internal communications and to provide observability, security, and resilience among 50+ services, a service mesh can be invaluable.
+
 ## Contributing
 
 Contributions are welcome and greatly appreciated! If you would like to contribute to this project, please follow the guidelines within [CONTRIBUTING.md](CONTRIBUTING.md).

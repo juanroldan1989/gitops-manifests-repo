@@ -24,6 +24,14 @@ resources:
     memory: "256Mi"
 
 ############################################
+# Rollout configuration
+############################################
+
+rollout:
+  enabled: false # Deployment resource is created and rollout is not
+  # enabled: true # Rollout resource is created and deployment is not
+
+############################################
 # Probe configuration
 ############################################
 
