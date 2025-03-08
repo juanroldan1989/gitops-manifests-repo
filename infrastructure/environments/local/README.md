@@ -46,6 +46,23 @@ If you’re using a configuration file:
 kind create cluster --name local-eks --config kind-config.yaml
 ```
 
+```bash
+Creating cluster "local-eks" ...
+ ✓ Ensuring node image (kindest/node:v1.32.2) 🖼
+ ✓ Preparing nodes 📦 📦 📦
+ ✓ Writing configuration 📜
+ ✓ Starting control-plane 🕹️
+ ✓ Installing CNI 🔌
+ ✓ Installing StorageClass 💾
+ ✓ Joining worker nodes 🚜
+Set kubectl context to "kind-local-eks"
+You can now use your cluster with:
+
+kubectl cluster-info --context kind-local-eks
+
+Not sure what to do next? 😅  Check out https://kind.sigs.k8s.io/docs/user/quick-start/
+```
+
 Or, to create a default cluster:
 
 ```bash
