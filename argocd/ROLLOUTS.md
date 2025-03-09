@@ -98,18 +98,21 @@ kubectl argo rollouts dashboard
 kubectl argo rollouts set image name-rollout image=juanroldan1989/name:latest
 ```
 
-2. Follow rollout within CLI:
+2. Follow rollout status within CLI:
 
 ![](/argocd/rollout.gif)
 
-3. Since this rollout requires manual intervention on the first pause,
-
-we **promote** rollout (allow the deployment to continue) with:
+3. Since this rollout requires manual intervention on the first pause, we **promote** rollout (allow the deployment to continue) with:
 
 ```bash
 kubectl argo rollouts promote name-rollout -n greeter-app
 ```
 
 4. The rest of the pauses are automatic and each one continues with the deployment after `10 seconds`.
+
+<div style="display: flex; justify-content: space-around; align-items: center;">
+  <img src="https://github.com/user-attachments/assets/e6fb8b66-589e-432b-862a-5bd9c2f70cef" width="405" style="margin-right: 10px;" />
+  <img src="https://github.com/user-attachments/assets/37ee0908-3ddf-4dff-aabb-6bab21edfffa" width="403" />
+</div>
 
 5. `Canary` deployment finishes when the new version is now the `stable` one.

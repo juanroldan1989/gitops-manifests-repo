@@ -92,6 +92,10 @@ Follow the steps in the [ArgoCD setup guide](/argocd/README.md)
 - After merging, the pipeline will generate a pull request in [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo) for updating the manifest with the new `image` version.
 - Once merged, `ArgoCD` will **sync the new image to the EKS cluster** and automatically deploy the apps (e.g., `greeter-app`, `greeting-app`, `name-app`) from the `manifests` folder.
 
+### 5. Manage deployments in `manifests` repo: ArgoCD / ArgoRollouts
+
+Follow the steps in the [ArgoRollouts setup guide](/argocd/ROLLOUTS.md)
+
 ## Key Benefits
 
 ArgoCD is a **declarative, GitOps-based continuous delivery tool for Kubernetes**.
