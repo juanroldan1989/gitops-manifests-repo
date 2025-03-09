@@ -92,23 +92,29 @@ kubectl argo rollouts dashboard
 
 ## Rollout a new image
 
-1. Change Docker image version for `name` application.
+1. Change Docker image version for `name` application within `manifests/name-app/values.yaml`
 
 ```bash
-kubectl argo rollouts set image name-rollout image=juanroldan1989/name:latest
+namespace: greeter-app
+app:
+  name: name
+  image: juanroldan1989/name:latest # was 0.0.1 previously
+  port: 5001
 ```
 
-2. Follow rollout status within CLI:
+2. Create PR, review change and merge into `main` branch.
+
+3. Follow rollout status within CLI:
 
 ![](/argocd/rollout.gif)
 
-3. Since this rollout requires manual intervention on the first pause, we **promote** rollout (allow the deployment to continue) with:
+4. Since this rollout requires manual intervention on the first pause, we **promote** rollout (allow the deployment to continue) with:
 
 ```bash
 kubectl argo rollouts promote name-rollout -n greeter-app
 ```
 
-4. The rest of the pauses are automatic and each one continues with the deployment after `10 seconds`.
+5. The rest of the pauses are automatic and each one continues with the deployment after `10 seconds`.
 
 <div style="display: flex; justify-content: space-around; align-items: center;">
   <img src="https://github.com/user-attachments/assets/e6fb8b66-589e-432b-862a-5bd9c2f70cef" width="405" style="margin-right: 10px;" />
