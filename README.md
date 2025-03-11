@@ -118,8 +118,6 @@ Steps to fully restore the entire platform (Infrastructure + K8S Cluster + Appli
 
 ## Work in progress
 
-- Troubleshoot Argo Rollouts Dashboard access through port 3100.
-
 - Monitor and Observe: Set up comprehensive monitoring (e.g., Prometheus, Grafana, ELK/EFK stack) and logging to keep track of inter-service communications, performance, and failures.
 
 - Add several applications that rely in N microservices. E.g.: uber-eats

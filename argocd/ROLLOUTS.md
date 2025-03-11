@@ -30,6 +30,24 @@ kubectl delete -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/ar
 kubectl delete namespace argo-rollouts
 ```
 
+### Custom installation (only in specific default managed node groups)
+
+1. To ensure that `Argo Rollout`'s pods are scheduled on our `EKS` managed node groups (and not on nodes provisioned by Karpenter):
+
+```bash
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+
+helm install argo-rollouts argo/argo-rollouts --namespace argo-rollouts --create-namespace -f values.yaml
+```
+
+2. Removing `Argo Rollout` resources:
+
+```bash
+helm uninstall argo-rollouts --namespace argo-rollouts
+kubectl delete namespace argo-rollouts
+```
+
 ## 3. Install Argo Rollouts plugin for kubectl
 
 ```bash
