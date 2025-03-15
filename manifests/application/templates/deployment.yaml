@@ -30,13 +30,17 @@ spec:
             cpu: {{ .Values.resources.requests.cpu }}
             memory: {{ .Values.resources.requests.memory }}
         env:
-        {{- if .Values.env }}
-        {{ toYaml .Values.env | nindent 10 }}
-        {{- end }}
-        {{- if .Values.envFrom }}
-        envFrom:
-        {{ toYaml .Values.envFrom | nindent 10 }}
-        {{- end }}
+{{- range $index, $env := .Values.env }}
+          - name: {{ $env.name }}
+{{- if $env.secret }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $env.secret_name | lower | replace "_" "-" }}
+                key: value
+{{- else }}
+            value: {{ $env.value | quote }}
+{{- end }}
+{{- end }}
         readinessProbe:
           httpGet:
             path: {{ .Values.readinessProbe.path }}
