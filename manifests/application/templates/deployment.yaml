@@ -29,6 +29,14 @@ spec:
           requests:
             cpu: {{ .Values.resources.requests.cpu }}
             memory: {{ .Values.resources.requests.memory }}
+        env:
+        {{- if .Values.env }}
+        {{ toYaml .Values.env | nindent 10 }}
+        {{- end }}
+        {{- if .Values.envFrom }}
+        envFrom:
+        {{ toYaml .Values.envFrom | nindent 10 }}
+        {{- end }}
         readinessProbe:
           httpGet:
             path: {{ .Values.readinessProbe.path }}

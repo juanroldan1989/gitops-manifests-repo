@@ -17,6 +17,7 @@ kubectl create ns argo-rollouts
 - To deploy Argo Rollouts, use the following command:
 
 ```bash
+kubectl create ns argo-rollouts
 kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
 kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/dashboard-install.yaml
 ```

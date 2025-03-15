@@ -1,0 +1,26 @@
+namespace: greeter-app
+
+app:
+  name: greeter-saver
+  image: juanroldan1989/greeter-saver:latest
+  port: 5008
+
+replicaCount: 3
+
+hpa:
+  minReplicas: 3
+  maxReplicas: 10
+
+ingress:
+  enabled: true
+
+resourceQuota:
+  enabled: true
+
+env:
+  - name: NAME_SERVICE_URL
+    value: "http://name:5001/name"
+  - name: GREETING_SERVICE_URL
+    value: "http://greeting:5002/greeting"
+  - name: DATABASE_URL
+    value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
