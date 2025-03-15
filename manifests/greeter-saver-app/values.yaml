@@ -24,3 +24,7 @@ env:
     value: "http://greeting:5002/greeting"
   - name: DATABASE_URL
     value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
+  # - name: DATABASE_URL
+  #   secret: true
+  #   secret_name: "AWS_SSM_DATABASE_URL"
+  #   provider: "AWS_SSM"

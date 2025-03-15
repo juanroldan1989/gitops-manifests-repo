@@ -74,6 +74,14 @@ helm upgrade \
   --values ./manifests/greeter-saver-app/values.yaml
 ```
 
+- Removing the apps:
+
+```bash
+helm uninstall greeting --namespace greeter-app
+helm uninstall name --namespace greeter-app
+helm uninstall greeter-saver --namespace greeter-app
+```
+
 #### Using `ArgoCD` apps
 
 - Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argocd/README.md)
@@ -84,6 +92,14 @@ helm upgrade \
 kubectl apply -f argocd/apps/greeter-saver-app.yaml
 kubectl apply -f argocd/apps/name-app.yaml
 kubectl apply -f argocd/apps/greeting-app.yaml
+```
+
+- Removing the apps:
+
+```bash
+kubectl delete -f argocd/apps/greeter-saver-app.yaml
+kubectl delete -f argocd/apps/name-app.yaml
+kubectl delete -f argocd/apps/greeting-app.yaml
 ```
 
 ### 4. Launch `greeter-saver` app
@@ -129,3 +145,24 @@ mydatabase=# SELECT * FROM "greetings";
  16 | Salutations, Charlie! | 2025-03-15 12:37:44.923726
 (16 rows)
 ```
+
+## Secret values
+
+ENV variables (sensitive and non-sensitive ones) can be defined within a single block:
+
+```bash
+...
+env:
+  - name: NAME_SERVICE_URL
+    value: "http://name:5001/name"
+  - name: GREETING_SERVICE_URL
+    value: "http://greeting:5002/greeting"
+  - name: DATABASE_URL
+    value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
+```
+
+- This means:
+
+1. `NAME_SERVICE_URL` is passed directly as an inline value to the `deployment` K8S resource
+2. `GREETING_SERVICE_URL` is passed directly as an inline value to the `deployment` K8S resource
+3. `DATABASE_URL` is sourced from a `Kubernetes Secret` named `AWS_SSM_DATABASE_URL` using the key `value`.
