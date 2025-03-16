@@ -95,7 +95,10 @@ Follow the same process as in your production workflow, adjusting as necessary f
 
 ## Remove infrastructure
 
-1. Remove ArgoCD Applications
+1. Remove ArgoCD Applications from UI with `foreground` option.
 2. K8S Application resources (Deployment, Ingress, Service, HPA) are removed automatically.
-3. Remove ArgoCD itself.
-4. Delete `kind` cluster
+3. Delete `kind` cluster:
+
+```bash
+kind delete clusters local-eks
+```
