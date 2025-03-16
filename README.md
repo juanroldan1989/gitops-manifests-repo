@@ -126,6 +126,8 @@ Steps to fully restore the entire platform (Infrastructure + K8S Cluster + Appli
 
 - Adopt a Service Mesh: For internal communications and to provide observability, security, and resilience among 50+ services, a service mesh can be invaluable.
 
+- Monitor Kubernetes Cloud Costs: https://www.kubecost.com/install#show-instructions
+
 ## Contributing
 
 Contributions are welcome and greatly appreciated! If you would like to contribute to this project, please follow the guidelines within [CONTRIBUTING.md](CONTRIBUTING.md).

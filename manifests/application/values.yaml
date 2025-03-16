@@ -91,3 +91,10 @@ resourceQuota:
   cpu: "20"      # Maximum CPU allowed in the namespace
   memory: "20Gi" # Maximum memory allowed
   pods: "50"     # Maximum number of pods
+
+############################################
+# Secrets configuration
+############################################
+
+secrets:
+  enabled: false

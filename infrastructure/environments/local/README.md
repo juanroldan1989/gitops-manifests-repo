@@ -1,104 +1,220 @@
-# Local Cluster Setup with kind
+# Greeter Saver App
 
-If you want to quickly test your apps on a local Kubernetes cluster, you can use kind (Kubernetes IN Docker). Follow these steps:
+## Local environment
 
-## Prerequisites
-
-- `Docker`: Make sure Docker is installed and running on your machine.
-- `kubectl`: Install kubectl to interact with your cluster.
-- `kind`: Install kind using one of the methods below:
-
-## Installing kind
+### 1. Provision database
 
 ```bash
-brew install kind
+docker run --name local-postgres \
+  -e POSTGRES_USER=user \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=mydatabase \
+  -p 5432:5432 \
+  -d postgres:13-alpine
 ```
 
-## Provision infrastructure
+### 2. Setup `env` variables within App
 
-### Create a Cluster Configuration File (Optional)
-
-You can create a configuration file to customize your cluster. For example, create a file named kind-config.yaml:
+Within `values.yaml` file, adjust localhost's IP:
 
 ```bash
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  - role: control-plane
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
-  - role: worker
-  - role: worker
+...
+
+- name: DATABASE_URL
+  value: "postgresql://user:password@<local-ip>:5432/mydatabase"
 ```
 
-This config maps common HTTP/HTTPS ports from your local machine to the cluster.
+- `<local-ip>` obtained through:
 
-### Create the Local Cluster
-
-If you’re using a configuration file:
-
-```bash
-kind create cluster --name local-eks --config kind-config.yaml
+```
+ifconfig
 ```
 
 ```bash
-Creating cluster "local-eks" ...
- ✓ Ensuring node image (kindest/node:v1.32.2) 🖼
- ✓ Preparing nodes 📦 📦 📦
- ✓ Writing configuration 📜
- ✓ Starting control-plane 🕹️
- ✓ Installing CNI 🔌
- ✓ Installing StorageClass 💾
- ✓ Joining worker nodes 🚜
-Set kubectl context to "kind-local-eks"
-You can now use your cluster with:
-
-kubectl cluster-info --context kind-local-eks
-
-Not sure what to do next? 😅  Check out https://kind.sigs.k8s.io/docs/user/quick-start/
+...
+en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
+...
+	inet 192.168.178.131 netmask 0xffffff00 broadcast 192.168.178.255
+	status: active
+...
 ```
 
-Or, to create a default cluster:
+```
+192.168.178.131
+```
+
+### 3. Provision Apps within K8S Cluster
+
+#### Using `application` Helm chart
+
+- Provision `name` app:
 
 ```bash
-kind create cluster --name local-eks
+helm upgrade \
+  --install name ./manifests/application \
+  --namespace greeter-app \
+  --values ./manifests/name-app/values.yaml
 ```
 
-### Verify the Cluster is Running
-
-Check the cluster status with:
+- Provision `greeting` app:
 
 ```bash
-kubectl cluster-info --context kind-local-eks
+helm upgrade \
+  --install greeting ./manifests/application \
+  --namespace greeter-app \
+  --values ./manifests/greeting-app/values.yaml
 ```
 
-This command should display information about your local Kubernetes API server.
-
-### Deploy ArgoCD & ArgoCD Applications
-
-Same instructions as within [argocd](/argocd/README.md) folder
-
-### Deploy Applications
-
-With your local cluster up and running, you can now deploy your Kubernetes manifests (or `ArgoCD` if you wish to test the GitOps workflow locally). For example:
+- Provision `greeter-saver` app:
 
 ```bash
-kubectl apply -R -f manifests
+helm upgrade \
+  --install greeter-saver ./manifests/application \
+  --namespace greeter-app \
+  --values ./manifests/greeter-saver-app/values.yaml
 ```
 
-Follow the same process as in your production workflow, adjusting as necessary for a local environment.
-
-## Remove infrastructure
-
-1. Remove ArgoCD Applications from UI with `foreground` option.
-2. K8S Application resources (Deployment, Ingress, Service, HPA) are removed automatically.
-3. Delete `kind` cluster:
+- Removing the apps:
 
 ```bash
-kind delete clusters local-eks
+helm uninstall greeting --namespace greeter-app
+helm uninstall name --namespace greeter-app
+helm uninstall greeter-saver --namespace greeter-app
 ```
+
+#### Using `ArgoCD` apps
+
+- Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argocd/README.md)
+
+- Then provision apps:
+
+```bash
+kubectl apply -f argocd/apps/greeter-saver-app.yaml
+kubectl apply -f argocd/apps/name-app.yaml
+kubectl apply -f argocd/apps/greeting-app.yaml
+```
+
+- Removing the apps:
+
+```bash
+kubectl delete -f argocd/apps/greeter-saver-app.yaml
+kubectl delete -f argocd/apps/name-app.yaml
+kubectl delete -f argocd/apps/greeting-app.yaml
+```
+
+### 4. Launch `greeter-saver` app
+
+```bash
+kubectl port-forward svc/greeter-saver 5008:5008 -n greeter-app
+```
+
+### 5. Access App
+
+```bash
+curl localhost:5008/greet
+
+{"message":"Salutations, Charlie!"}
+```
+
+### 6. Validate data stored properly
+
+```bash
+docker exec -it local-postgres psql -U user -d mydatabase
+
+psql (13.20)
+Type "help" for help.
+
+mydatabase=# SELECT * FROM "greetings";
+ id |        message        |         created_at
+----+-----------------------+----------------------------
+  1 | Hey, Bob!             | 2025-03-15 12:37:23.400845
+  2 | Hi, Daisy!            | 2025-03-15 12:37:24.197722
+  3 | Hello, Eve!           | 2025-03-15 12:37:24.53659
+  4 | Salutations, Eve!     | 2025-03-15 12:37:24.835507
+  5 | Salutations, Daisy!   | 2025-03-15 12:37:25.076832
+  6 | Greetings, Charlie!   | 2025-03-15 12:37:25.376727
+  7 | Greetings, Daisy!     | 2025-03-15 12:37:25.629115
+  8 | Hey, Daisy!           | 2025-03-15 12:37:25.821496
+  9 | Hello, Alice!         | 2025-03-15 12:37:26.027783
+ 10 | Hello, Alice!         | 2025-03-15 12:37:26.333541
+ 11 | Salutations, Bob!     | 2025-03-15 12:37:26.547872
+ 12 | Greetings, Daisy!     | 2025-03-15 12:37:26.766079
+ 13 | Hey, Eve!             | 2025-03-15 12:37:27.032531
+ 14 | Greetings, Bob!       | 2025-03-15 12:37:27.218642
+ 15 | Salutations, Bob!     | 2025-03-15 12:37:27.401385
+ 16 | Salutations, Charlie! | 2025-03-15 12:37:44.923726
+(16 rows)
+```
+
+### 7. Secret values
+
+- `ENV` variables (**sensitive** and **non-sensitive** ones) can be defined within a single block:
+
+```bash
+...
+env:
+  - name: NAME_SERVICE_URL
+    value: "http://name:5001/name"
+  - name: GREETING_SERVICE_URL
+    value: "http://greeting:5002/greeting"
+  # for local development, we will reference a local database
+  # - name: DATABASE_URL
+  #   value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
+
+  # for production, we will reference a RDS instance using AWS SSM
+  - name: DATABASE_URL
+    secret: true
+    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
+    provider: "AWS_SSM"                       # kept for reference only
+
+```
+
+- Based on the above setup:
+
+### For `non-sensitive` values
+
+1. `NAME_SERVICE_URL` is passed directly as an inline value to the `deployment` K8S resource.
+2. `GREETING_SERVICE_URL` is passed directly as an inline value to the `deployment` K8S resource.
+
+### For `sensitive` values
+
+#### `local` development, we will reference a local database:
+
+```bash
+  - name: DATABASE_URL
+    value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
+```
+
+- No Kubernetes `secret` resource is created.
+
+#### `production` deployment, we will reference a RDS Instance through a SSM secret:
+
+```bash
+  - name: DATABASE_URL
+    secret: true
+    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
+    provider: "AWS_SSM"                       # kept for reference only
+```
+
+1. `DATABASE_URL` is set through an external secrets provider (e.g.: AWS SSM).
+
+2. Secret `aws-ssm-database-url` will automatically be created by the `application` Helm chart:
+
+```bash
+kubectl describe secret greeter-saver-secret -n greeter-app
+Name:         greeter-saver-secret
+Namespace:    greeter-app
+Labels:       app.kubernetes.io/managed-by=Helm
+Annotations:  meta.helm.sh/release-name: greeter-saver
+              meta.helm.sh/release-namespace: greeter-app
+
+Type:  Opaque
+
+Data
+====
+database-url:  0 bytes
+```
+
+3. An **empty** value string will be populated for the secret. Allowing your external process (like the `AWS Secrets Store CSI Driver`) to populate it later.
+
+- Kubernetes resource **names** must follow `RFC 1123`, which allows only lowercase alphanumeric characters, '-' and '.'

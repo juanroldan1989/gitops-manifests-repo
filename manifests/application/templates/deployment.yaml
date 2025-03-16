@@ -35,8 +35,8 @@ spec:
 {{- if $env.secret }}
             valueFrom:
               secretKeyRef:
-                name: {{ $env.secret_name | lower | replace "_" "-" }}
-                key: value
+                name: {{ $.Values.app.name | lower }}-secret
+                key: {{ $env.name | lower | replace "_" "-" }}
 {{- else }}
             value: {{ $env.value | quote }}
 {{- end }}

@@ -17,4 +17,4 @@ networkPolicy:
   allowedAppLabel: greeter
 
 rollout:
-  enabled: true
+  enabled: false

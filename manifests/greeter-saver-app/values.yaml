@@ -17,14 +17,21 @@ ingress:
 resourceQuota:
   enabled: true
 
+secrets:
+  enabled: true
+
 env:
   - name: NAME_SERVICE_URL
     value: "http://name:5001/name"
   - name: GREETING_SERVICE_URL
     value: "http://greeting:5002/greeting"
+
+  # for local development, we will reference a local database
   # - name: DATABASE_URL
   #   value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
+
+  # for production, we will reference a RDS instance using AWS SSM
   - name: DATABASE_URL
     secret: true
-    secret_name: "AWS_SSM_DATABASE_URL"
-    provider: "AWS_SSM"
+    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
+    provider: "AWS_SSM"                       # kept for reference only
