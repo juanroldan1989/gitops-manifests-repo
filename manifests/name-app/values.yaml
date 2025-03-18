@@ -4,11 +4,11 @@ app:
   image: juanroldan1989/name:0.0.1
   port: 5001
 
-replicaCount: 10
+replicaCount: 3
 
 hpa:
-  minReplicas: 1
-  maxReplicas: 10
+  minReplicas: 3
+  maxReplicas: 5
 
 networkPolicy:
   enabled: true
@@ -18,3 +18,12 @@ networkPolicy:
 
 rollout:
   enabled: false
+
+secrets:
+  enabled: true
+
+env:
+  - name: DATABASE_URL
+    secret: true
+    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
+    provider: "AWS_SSM"                       # kept for reference only

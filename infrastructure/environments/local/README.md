@@ -1,8 +1,6 @@
 # Greeter Saver App
 
-## Local environment
-
-### 1. Provision database
+## 1. Provision database
 
 ```bash
 docker run --name local-postgres \
@@ -13,7 +11,7 @@ docker run --name local-postgres \
   -d postgres:13-alpine
 ```
 
-### 2. Setup `env` variables within App
+## 2. Setup `env` variables within App
 
 Within `values.yaml` file, adjust localhost's IP:
 
@@ -43,7 +41,7 @@ en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
 192.168.178.131
 ```
 
-### 3. Provision Apps within K8S Cluster
+## 3. Provision Apps within K8S Cluster
 
 #### Using `application` Helm chart
 
@@ -102,13 +100,13 @@ kubectl delete -f argocd/apps/name-app.yaml
 kubectl delete -f argocd/apps/greeting-app.yaml
 ```
 
-### 4. Launch `greeter-saver` app
+## 4. Launch `greeter-saver` app
 
 ```bash
 kubectl port-forward svc/greeter-saver 5008:5008 -n greeter-app
 ```
 
-### 5. Access App
+## 5. Access App
 
 ```bash
 curl localhost:5008/greet
@@ -116,7 +114,7 @@ curl localhost:5008/greet
 {"message":"Salutations, Charlie!"}
 ```
 
-### 6. Validate data stored properly
+## 6. Validate data stored properly
 
 ```bash
 docker exec -it local-postgres psql -U user -d mydatabase
@@ -146,7 +144,7 @@ mydatabase=# SELECT * FROM "greetings";
 (16 rows)
 ```
 
-### 7. Secret values
+## 7. Secret values
 
 - `ENV` variables (**sensitive** and **non-sensitive** ones) can be defined within a single block:
 
