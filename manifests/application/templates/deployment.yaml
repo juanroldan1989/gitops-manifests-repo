@@ -72,7 +72,7 @@ spec:
           driver: secrets-store.csi.k8s.io
           readOnly: true
           volumeAttributes:
-            secretProviderClass: ssm-db-credentials
+            secretProviderClass: "ssm-db-credentials"
         name: secrets-store-inline
 {{- end }}
 ---

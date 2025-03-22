@@ -1,0 +1,24 @@
+# Create a ClusterRole that allows CSI driver to access secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secrets-store-csi-driver-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "update", "delete", "get", "list", "patch", "watch"]
+
+---
+# Bind this role to the CSI driver's service account.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: secrets-store-csi-driver-binding
+subjects:
+  - kind: ServiceAccount
+    name: secrets-store-csi-driver
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: secrets-store-csi-driver-role
+  apiGroup: rbac.authorization.k8s.io

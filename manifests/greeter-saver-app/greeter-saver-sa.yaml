@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: greeter-saver-sa
+  namespace: greeter-app
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/GreeterSaverRole"

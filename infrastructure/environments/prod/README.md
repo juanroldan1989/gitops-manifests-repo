@@ -129,22 +129,161 @@ aws ssm put-parameter \
 - Validate secret has been stored properly:
 
 ```bash
-aws ssm get-parameter --name "/greeter-saver/DB_URL" --with-decryption
+aws ssm get-parameter --name "greeter-saver-database-url" --with-decryption
 
 {
   "Parameter": {
-    "Name": "/greeter-saver/DB_URL",
+    "Name": "greeter-saver-database-url",
     "Type": "SecureString",
-    "Value": "postgresql://myuser:mypassword@greeter-saver-db.cvzkxrydiye2.<region-id>.rds.amazonaws.com:5432/mydatabase",
+    "Value": "postgresql://myuser:mypassword@greeter-saver-db.cvzkxrydiye2.us-east-1.rds.amazonaws.com:5432/mydatabase",
     "Version": 1,
     "LastModifiedDate": "2025-03-19T22:25:14.345000+01:00",
-    "ARN": "arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver/DB_URL",
+    "ARN": "arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver-database-url",
     "DataType": "text"
   }
 }
 ```
 
-## 6. Provision Apps within K8S Cluster
+## 7. AWS Secrets Store CSI Driver
+
+- https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation
+
+- https://github.com/aws/secrets-store-csi-driver-provider-aws?tab=readme-ov-file
+
+- Deployment Example with Secrets Store CSI Driver:
+https://github.com/kubernetes-sigs/secrets-store-csi-driver/blob/main/test/bats/tests/vault/deployment-synck8s.yaml
+
+1. Install CSI Driver:
+
+```bash
+helm repo add csi-secrets-store https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+helm repo update
+helm install csi-secrets-store csi-secrets-store/secrets-store-csi-driver \
+  --namespace kube-system \
+  --set syncSecret.enabled=true \
+  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::<account-id>:role/<CSI-Driver-Role>"
+```
+
+In this command, we:
+
+- Enable the `syncSecret` feature.
+- Set the `eks.amazonaws.com/role-arn` annotation on the `service account` used by the `CSI driver`.
+
+2. Install the AWS Provider for the Secrets Store CSI Driver:
+
+```bash
+helm repo add aws-secrets-manager https://aws.github.io/secrets-store-csi-driver-provider-aws
+helm install secrets-provider-aws aws-secrets-manager/secrets-store-csi-driver-provider-aws -n kube-system
+```
+
+3. Create Secret Provider class:
+
+```yaml
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: ssm-db-credentials
+  namespace: greeter-app
+spec:
+  provider: aws
+  parameters:
+    region: us-east-1 # Specify the region if necessary
+    objects: |
+      - objectName: "greeter-saver-database-url"
+        objectType: "ssmparameter"
+  secretObjects:
+    - secretName: greeter-saver-secret
+      type: Opaque
+      data:
+        - objectName: "greeter-saver-database-url"
+          key: database-url
+```
+
+```bash
+kubectl apply -f manifests/greeter-saver-app/ssm-secretproviderclass.yaml
+```
+
+4. Validate CSI Driver Logs and check for `"reconcile start"` and `"reconcile complete"` messages:
+
+```bash
+kubectl logs -f -n kube-system -l app=secrets-store-csi-driver
+```
+
+5. Validate `Service Account` resources have the correct `EKS` annotation:
+
+- The annotation `eks.amazonaws.com/role-arn` is used to **bind an IAM role to a Kubernetes Service Account via IRSA (IAM Roles for Service Accounts)**.
+
+- You need to add this annotation to any Service Account that must assume an AWS IAM role to access AWS resources:
+
+-- **The CSI Driver’s Service Account:**
+
+The service account used by the `Secrets Store CSI Driver` (usually in the `kube-system` namespace) must be annotated with the IAM role ARN that has permissions to access SSM (and other AWS APIs as needed).
+
+-- **Your Application’s Service Account (if applicable):**
+
+If your application also requires AWS access via IRSA (for example: if it accesses `S3`, `SSM`, or other services directly), then **its service account should also be annotated with the appropriate IAM role ARN**.
+
+- If you’re only using the CSI driver to pull secrets from `SSM`, then the key resource to annotate is the CSI driver’s service account (e.g., `secrets-store-csi-driver` in the `kube-system` namespace). Ensure that this Service Account has an annotation like:
+
+```bash
+eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<CSI-Driver-Role>
+```
+
+- This annotation tells AWS that **when the CSI driver pods assume this service account, they should be granted the permissions of the specified IAM role.**
+
+- If your application pods (e.g.: `greeter-saver-app`) also need to access AWS services directly, then you should similarly annotate their Service Account (for example, greeter-saver-sa in the greeter-app namespace) with the appropriate IAM role ARN.
+
+## 9. IAM Policy, IAM Role and Service Accounts
+
+1. Create an IAM policy that grants the required permissions (for example, `ssm:GetParameter` and `ssm:GetParameters`). Save it as a JSON file (e.g., ssm-policy.json):
+
+```bash
+aws iam create-policy --policy-name GreeterSaverSSMPolicy --policy-document file://manifests/greeter-saver-app/ssm-policy.json
+```
+
+2. Create an IAM Role for the Service Account:
+
+- Assuming your `EKS` cluster has an `OIDC` provider set up, create an **IAM role that can be assumed by your service account.**
+
+```bash
+aws eks describe-cluster --name prod-eks-cluster-a --query "cluster.identity.oidc.issuer" --output text
+
+https://oidc.eks.us-east-1.amazonaws.com/id/9C4BEA34C8AC70FD78CDDD9D129FE9B0
+```
+
+3. Now, create the IAM role:
+
+```bash
+aws iam create-role --role-name GreeterSaverRole --assume-role-policy-document file://manifests/greeter-saver-app/trust-policy.json
+```
+
+4. Then attach the policy you created:
+
+```bash
+aws iam attach-role-policy --role-name GreeterSaverRole --policy-arn arn:aws:iam::<account-id>:policy/GreeterSaverSSMPolicy
+```
+
+5. Create a Service Account in Your Cluster:
+
+- Create a service account for your `greeter-saver` app in the `greeter-app` namespace and annotate it with the `IAM` role ARN.
+
+```bash
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: greeter-saver-sa
+  namespace: greeter-app
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/GreeterSaverRole"
+```
+
+- Apply it:
+
+```bash
+kubectl apply -f greeter-saver-sa.yaml
+```
+
+## 8. Provision Apps within K8S Cluster
 
 - Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argocd/README.md)
 
@@ -158,7 +297,7 @@ kubectl apply -f argocd/apps/greeting-app.yaml
 
 - Removing the apps: Use ArgoCD UI to delete associated infrastructure resources through `foreground` deletion.
 
-## 7. Secret values
+## 9. Secret values
 
 - `ENV` variables (**sensitive** and **non-sensitive** ones) can be defined within a single block:
 
@@ -215,54 +354,36 @@ database-url:  0 bytes
 
 - Kubernetes resource **names** must follow `RFC 1123`, which allows only lowercase alphanumeric characters, '-' and '.'
 
-## 8. AWS Secrets Store CSI Driver
-
-- https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation
-
-- https://github.com/aws/secrets-store-csi-driver-provider-aws?tab=readme-ov-file
-
-- Deployment Example with Secrets Store CSI Driver:
-https://github.com/kubernetes-sigs/secrets-store-csi-driver/blob/main/test/bats/tests/vault/deployment-synck8s.yaml
-
-### Setup
-
-1. Install CSI Driver:
+#### Validate Pod is accessing the AWS secret correctly
 
 ```bash
-helm repo add csi-secrets-store https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-helm repo update
-helm install csi-secrets-store csi-secrets-store/secrets-store-csi-driver --namespace kube-system
+kubectl exec -it greeter-saver-deployment-5d4798df54-lzrk9 -n greeter-app -- ls /mnt/secrets-store
+_greeter-saver_DB_URL
+
+kubectl exec -it greeter-saver-deployment-5d4798df54-lzrk9 -n greeter-app -- cat /mnt/secrets-store/_greeter-saver_DB_URL
+postgresql://myuser:mypassword@greeter-saver-db.xxxxxx.<region-id>.rds.amazonaws.com:5432/mydatabase%
 ```
 
-2. Install the AWS Provider for the Secrets Store CSI Driver:
+#### IMPORTANT
+
+**if we had used /greeter-saver/DB_URL** instead of **greeter-saver-database-url**:
+
+1. The CSI driver is supposed to take the parameter from SSM (using objectName "/greeter-saver/DB_URL") and sync it into the Kubernetes Secret under the key "database-url".
+
+2. The CSI driver’s **internal sanitization of the objectName** will adjust the `objectName` to `_greeter-saver_DB_URL`
+
+3. So there will be a mismatch between what your `SecretProviderClass` expects and what the `CSI Driver` creates.
+
+4. Then, CSI Driver logs will show:
 
 ```bash
-helm repo add aws-secrets-manager https://aws.github.io/secrets-store-csi-driver-provider-aws
-helm install secrets-provider-aws aws-secrets-manager/secrets-store-csi-driver-provider-aws -n kube-system
-```
+kubectl logs -f -n kube-system -l app=secrets-store-csi-driver
 
-3. Create Secret Provider class:
+...
+E0322 12:07:55.866189       1 secretproviderclasspodstatus_controller.go:318] "failed to get data in spc for secret" err="file matching objectName /greeter-saver/DB_URL not found in the pod" spc="greeter-app/ssm-db-credentials" pod="greeter-app/greeter-saver-deployment-5846548fc8-bqlh8" secret="greeter-app/greeter-saver-secret" spcps="greeter-app/greeter-saver-deployment-5846548fc8-bqlh8-greeter-app-ssm-db-credentials"
 
-```yaml
-apiVersion: secrets-store.csi.x-k8s.io/v1
-kind: SecretProviderClass
-metadata:
-  name: ssm-db-credentials
-  namespace: greeter-app
-spec:
-  provider: aws
-  parameters:
-    # Specify the region if necessary
-    region: <region-id>
-    objects: |
-      - objectName: "/greeter-saver/DB_URL"
-        objectType: "ssmparameter"
-  secretObjects:
-    - secretName: greeter-saver-secret
-      type: Opaque
-      data:
-        - objectName: "/greeter-saver/DB_URL"
-          key: database-url
+I0322 12:08:06.106979       1 secretproviderclasspodstatus_controller.go:224] "reconcile started" spcps="greeter-app/greeter-saver-deployment-5846548fc8-bqlh8-greeter-app-ssm-db-credentials"
+...
 ```
 
 ### Inspect `greeter-saver-deployment` and add CSI Secrets references through `volumeMounts`
@@ -310,6 +431,30 @@ spec:
             volumeAttributes:
               secretProviderClass: "vault-foo-sync"
 ```
+
+### `greeter-saver-deployment` logs
+
+```bash
+...
+Successfully assigned greeter-app/greeter-saver-deployment-74fb47d99d-swjhk to ip-10-0-16-182.ec2.internal
+  Warning  FailedMount  2s (x9 over 2m10s)  kubelet            MountVolume.SetUp failed for volume "secrets-store-inline" : rpc error: code = Unknown desc = failed to mount secrets store objects for pod greeter-app/greeter-saver-deployment-74fb47d99d-swjhk, err: rpc error: code = Unknown desc = us-east-1: An IAM role must be associated with service account default (namespace: greeter-app)
+```
+
+This error means that:
+
+- `Secrets Store CSI` driver’s AWS provider requires an IAM role to be associated with the `pod’s service account` so that it can call AWS APIs (e.g. `SSM:GetParameter`).
+
+- Right now, your pod is using the `default` service account, which doesn’t have an associated IAM role.
+
+- That is the reason an IAM Policy, IAM Role and Service Account have to be created.
+
+- IAM Policy is associated with IAM Role.
+
+- IAM Role is associated with Service Account.
+
+- Service Account contains the right annotation for the EKS cluster.
+
+- Deployments can now have this Service Account associated, so their pods will have the right permissions to access AWS resources.
 
 ### Validate IAM Role (EKS Worker Node) can access SSM
 
