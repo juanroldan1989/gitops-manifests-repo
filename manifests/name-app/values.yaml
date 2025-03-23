@@ -18,12 +18,3 @@ networkPolicy:
 
 rollout:
   enabled: false
-
-# secrets:
-#   enabled: true
-
-# env:
-#   - name: DATABASE_URL
-#     secret: true
-#     secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
-#     provider: "AWS_SSM"                       # kept for reference only

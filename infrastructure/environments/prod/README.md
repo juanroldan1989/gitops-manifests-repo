@@ -22,7 +22,7 @@ cd infrastructure/environments/prod
 aws rds create-db-subnet-group \
   --db-subnet-group-name mydbsubnetgroup \
   --db-subnet-group-description "DB Subnet group for greeter-saver RDS in new VPC" \
-  --subnet-ids subnet-08b3344b03208cc6c subnet-0aa04b09945f3efd2
+  --subnet-ids subnet-05e6acff19687ab27 subnet-0a16a8a82af9f31bc
 ```
 
 ### Clarification
@@ -39,15 +39,15 @@ aws rds create-db-subnet-group \
 aws ec2 create-security-group \
   --group-name rds-greeter-saver-sg \
   --description "Security group for greeter-saver RDS instance" \
-  --vpc-id vpc-0b98f5c35c101529d
+  --vpc-id vpc-019d367acf18128eb
 ```
 
 - Save security group ID returned afterwards:
 
 ```bash
 {
-  "GroupId": "sg-0865ebbdd0753eacd",
-  "SecurityGroupArn": "arn:aws:ec2:<region-id>:<account-id>:security-group/sg-0865ebbdd0753eacd"
+  "GroupId": "sg-0fc642d186dc26347",
+  "SecurityGroupArn": "arn:aws:ec2:<region-id>:<account-id>:security-group/sg-0fc642d186dc26347"
 }
 ```
 
@@ -55,13 +55,13 @@ aws ec2 create-security-group \
 
 ```bash
 aws ec2 authorize-security-group-ingress \
-  --group-id sg-0865ebbdd0753eacd \
+  --group-id sg-0fc642d186dc26347 \
   --protocol tcp \
   --port 5432 \
   --cidr 10.0.0.0/19
 
 aws ec2 authorize-security-group-ingress \
-  --group-id sg-0865ebbdd0753eacd \
+  --group-id sg-0fc642d186dc26347 \
   --protocol tcp \
   --port 5432 \
   --cidr 10.0.32.0/19
@@ -79,7 +79,7 @@ aws rds create-db-instance \
   --master-user-password mypassword \
   --db-name mydatabase \
   --no-publicly-accessible \
-  --vpc-security-group-ids sg-0865ebbdd0753eacd \
+  --vpc-security-group-ids sg-0fc642d186dc26347 \
   --db-subnet-group-name mydbsubnetgroup \
   --backup-retention-period 7 \
   --storage-encrypted
@@ -118,7 +118,7 @@ postgresql://myuser:mypassword@greeter-saver-db.cvzkxrydiye2.<region-id>.rds.ama
 
 ```bash
 aws ssm put-parameter \
-  --name "/greeter-saver/DB_URL" \
+  --name "greeter-saver-database-url" \
   --value "postgresql://myuser:mypassword@greeter-saver-db.cvzkxrydiye2.<region-id>.rds.amazonaws.com:5432/mydatabase" \
   --type SecureString \
   --overwrite
@@ -135,13 +135,63 @@ aws ssm get-parameter --name "greeter-saver-database-url" --with-decryption
   "Parameter": {
     "Name": "greeter-saver-database-url",
     "Type": "SecureString",
-    "Value": "postgresql://myuser:mypassword@greeter-saver-db.cvzkxrydiye2.us-east-1.rds.amazonaws.com:5432/mydatabase",
+    "Value": "postgresql://myuser:mypassword@greeter-saver-db.cvzkxrydiye2.<region-id>.rds.amazonaws.com:5432/mydatabase",
     "Version": 1,
     "LastModifiedDate": "2025-03-19T22:25:14.345000+01:00",
     "ARN": "arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver-database-url",
     "DataType": "text"
   }
 }
+```
+
+## 6. IAM Policy, IAM Role and Service Accounts
+
+1. Create an IAM policy that grants the required permissions (for example, `ssm:GetParameter` and `ssm:GetParameters`). Save it as a JSON file (e.g., ssm-policy.json):
+
+```bash
+aws iam create-policy --policy-name GreeterSaverSSMPolicy --policy-document file://manifests/greeter-saver-app/ssm-policy.json
+```
+
+2. Create an IAM Role for the Service Account:
+
+- Assuming your `EKS` cluster has an `OIDC` provider set up, create an **IAM role that can be assumed by your service account.**
+
+```bash
+aws eks describe-cluster --name prod-eks-cluster-a --query "cluster.identity.oidc.issuer" --output text
+
+https://oidc.eks.<region-id>.amazonaws.com/id/A9BD6F8F6A7B1FF74CF0AE380EECF3BD
+```
+
+3. Now, create the IAM role:
+
+```bash
+aws iam create-role --role-name GreeterSaverRole --assume-role-policy-document file://manifests/greeter-saver-app/trust-policy.json
+```
+
+4. Then attach the policy you created:
+
+```bash
+aws iam attach-role-policy --role-name GreeterSaverRole --policy-arn arn:aws:iam::<account-id>:policy/GreeterSaverSSMPolicy
+```
+
+5. Create a Service Account in Your Cluster:
+
+- Create a service account for your `greeter-saver` app in the `greeter-app` namespace and annotate it with the `IAM` role ARN.
+
+```bash
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: greeter-saver-sa
+  namespace: greeter-app
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/GreeterSaverRole"
+```
+
+- Apply it:
+
+```bash
+kubectl apply -f greeter-saver-sa.yaml
 ```
 
 ## 7. AWS Secrets Store CSI Driver
@@ -153,6 +203,8 @@ aws ssm get-parameter --name "greeter-saver-database-url" --with-decryption
 - Deployment Example with Secrets Store CSI Driver:
 https://github.com/kubernetes-sigs/secrets-store-csi-driver/blob/main/test/bats/tests/vault/deployment-synck8s.yaml
 
+- https://github.com/antonputra/tutorials/tree/main/lessons/079
+
 1. Install CSI Driver:
 
 ```bash
@@ -161,7 +213,7 @@ helm repo update
 helm install csi-secrets-store csi-secrets-store/secrets-store-csi-driver \
   --namespace kube-system \
   --set syncSecret.enabled=true \
-  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::<account-id>:role/<CSI-Driver-Role>"
+  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::<account-id>:role/GreeterSaverRole"
 ```
 
 In this command, we:
@@ -187,7 +239,7 @@ metadata:
 spec:
   provider: aws
   parameters:
-    region: us-east-1 # Specify the region if necessary
+    region: <region-id> # Specify the region if necessary
     objects: |
       - objectName: "greeter-saver-database-url"
         objectType: "ssmparameter"
@@ -226,61 +278,19 @@ If your application also requires AWS access via IRSA (for example: if it access
 - If you’re only using the CSI driver to pull secrets from `SSM`, then the key resource to annotate is the CSI driver’s service account (e.g., `secrets-store-csi-driver` in the `kube-system` namespace). Ensure that this Service Account has an annotation like:
 
 ```bash
-eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<CSI-Driver-Role>
+eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/GreeterSaverRole
 ```
 
 - This annotation tells AWS that **when the CSI driver pods assume this service account, they should be granted the permissions of the specified IAM role.**
 
 - If your application pods (e.g.: `greeter-saver-app`) also need to access AWS services directly, then you should similarly annotate their Service Account (for example, greeter-saver-sa in the greeter-app namespace) with the appropriate IAM role ARN.
 
-## 9. IAM Policy, IAM Role and Service Accounts
-
-1. Create an IAM policy that grants the required permissions (for example, `ssm:GetParameter` and `ssm:GetParameters`). Save it as a JSON file (e.g., ssm-policy.json):
+6. Add Cluster Roles permissions to CSI Driver:
 
 ```bash
-aws iam create-policy --policy-name GreeterSaverSSMPolicy --policy-document file://manifests/greeter-saver-app/ssm-policy.json
-```
-
-2. Create an IAM Role for the Service Account:
-
-- Assuming your `EKS` cluster has an `OIDC` provider set up, create an **IAM role that can be assumed by your service account.**
-
-```bash
-aws eks describe-cluster --name prod-eks-cluster-a --query "cluster.identity.oidc.issuer" --output text
-
-https://oidc.eks.us-east-1.amazonaws.com/id/9C4BEA34C8AC70FD78CDDD9D129FE9B0
-```
-
-3. Now, create the IAM role:
-
-```bash
-aws iam create-role --role-name GreeterSaverRole --assume-role-policy-document file://manifests/greeter-saver-app/trust-policy.json
-```
-
-4. Then attach the policy you created:
-
-```bash
-aws iam attach-role-policy --role-name GreeterSaverRole --policy-arn arn:aws:iam::<account-id>:policy/GreeterSaverSSMPolicy
-```
-
-5. Create a Service Account in Your Cluster:
-
-- Create a service account for your `greeter-saver` app in the `greeter-app` namespace and annotate it with the `IAM` role ARN.
-
-```bash
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: greeter-saver-sa
-  namespace: greeter-app
-  annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/GreeterSaverRole"
-```
-
-- Apply it:
-
-```bash
-kubectl apply -f greeter-saver-sa.yaml
+kubectl apply -f manifests/greeter-saver-app/csi-driver-cluster-role.yaml
+clusterrole.rbac.authorization.k8s.io/secrets-store-csi-driver-role created
+clusterrolebinding.rbac.authorization.k8s.io/secrets-store-csi-driver-binding created
 ```
 
 ## 8. Provision Apps within K8S Cluster
@@ -324,6 +334,8 @@ env:
 
 ### For `sensitive` values
 
+- Kubernetes resource **names** must follow `RFC 1123`, which allows only lowercase alphanumeric characters, '-' and '.'
+
 ```bash
   - name: DATABASE_URL
     secret: true
@@ -352,7 +364,17 @@ database-url:  0 bytes
 
 3. An **empty** value string will be populated for the secret. Allowing your external process (like the `AWS Secrets Store CSI Driver`) to populate it later.
 
-- Kubernetes resource **names** must follow `RFC 1123`, which allows only lowercase alphanumeric characters, '-' and '.'
+4. TODO:
+
+1. For `local` development, `sensitive` values should be provisioned via a Kubernetes `Secret`.
+2. For `cloud` deployment, `sensitive` values will be automatically stored in a **secret created by** the `CSI Driver`.
+3. This means, for `cloud` deployments, we **should not create a Kubernetes Secret** via manifests. This way:
+
+- `SecretProviderClass` will take care of handling the connection between AWS SSM Paramters (or Secrets Manager)
+- `Deployment` resource will reference the required secret from AWS and place it within an `ENV` variable, e.g.: `DATABASE_URL`
+- `CSI Driver` will manage `Secret` resources, so every Pod will have available the proper secret.
+
+- Business logic for sensitive values declaration needs to be improved.
 
 #### Validate Pod is accessing the AWS secret correctly
 
@@ -386,58 +408,66 @@ I0322 12:08:06.106979       1 secretproviderclasspodstatus_controller.go:224] "r
 ...
 ```
 
-### Inspect `greeter-saver-deployment` and add CSI Secrets references through `volumeMounts`
+## 10. Validate data is stored properly
+
+1. Find `ingress` URL and access it:
 
 ```bash
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: busybox-deployment
-  labels:
-    app: busybox
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: busybox
-  template:
-    metadata:
-      labels:
-        app: busybox
-    spec:
-      terminationGracePeriodSeconds: 0
-      containers:
-      - image: registry.k8s.io/e2e-test-images/busybox:1.29-4
-        name: busybox
-        imagePullPolicy: IfNotPresent
-        command:
-        - "/bin/sleep"
-        - "10000"
-        env:
-        - name: SECRET_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: foosecret
-              key: username
-        volumeMounts:
-        - name: secrets-store-inline
-          mountPath: "/mnt/secrets-store"
-          readOnly: true
-      volumes:
-        - name: secrets-store-inline
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: "vault-foo-sync"
+kubectl get ingress -A
+NAMESPACE     NAME            CLASS   HOSTS   ADDRESS                                                                   PORTS   AGE
+greeter-app   greeter-saver   alb     *       k8s-greetera-greeters-cb352b7b5c-1029811030.<region-id>.elb.amazonaws.com   80      154m
 ```
 
-### `greeter-saver-deployment` logs
+2. Trigger a couple of requests:
+
+```bash
+curl http://k8s-greetera-greeters-cb352b7b5c-1029811030.<region-id>.elb.amazonaws.com/greet
+{"message":"Hello, Bob!"}
+
+❯ curl http://k8s-greetera-greeters-cb352b7b5c-1029811030.<region-id>.elb.amazonaws.com/greet
+{"message":"Hello, Charlie!"}
+
+❯ curl http://k8s-greetera-greeters-cb352b7b5c-1029811030.<region-id>.elb.amazonaws.com/greet
+{"message":"Hello, Alice!"}
+...
+```
+
+3. Access RDS Instance from a temporal `debug-pod` and validate records stored properly:
+
+```bash
+kubectl run debug-pod --rm -it --image=postgres --namespace default -- bash
+
+If you dont see a command prompt, try pressing enter.
+root@debug-pod:/# psql -h greeter-saver-db.cvzkxrydiye2.<region-id>.rds.amazonaws.com -U myuser -d mydatabase
+Password for user myuser:
+psql (17.4 (Debian 17.4-1.pgdg120+2), server 17.2)
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off, ALPN: postgresql)
+Type "help" for help.
+
+mydatabase=> SELECT * FROM "greetings";
+
+id |     message     |         created_at
+----+-----------------+----------------------------
+  1 | Hello, Daisy!   | 2025-03-22 19:20:30.995826
+  2 | Greetings, Eve! | 2025-03-22 19:20:32.561708
+  3 | Hey, Alice!     | 2025-03-22 19:20:33.10501
+  4 | Hi, Alice!      | 2025-03-22 19:20:33.359021
+  5 | Hi, Eve!        | 2025-03-22 19:20:33.633131
+  6 | Hi, Eve!        | 2025-03-22 19:20:33.926945
+  7 | Hi, Daisy!      | 2025-03-22 19:20:34.182778
+  8 | Hi, Alice!      | 2025-03-22 19:20:34.423419
+  9 | Hi, Eve!        | 2025-03-22 19:20:34.616599
+ 10 | Hello, Alice!   | 2025-03-22 19:20:39.819444
+ 11 | Hi, Alice!      | 2025-03-22 19:20:40.036685
+ ...
+```
+
+### Troubleshooting `greeter-saver-deployment` logs
 
 ```bash
 ...
 Successfully assigned greeter-app/greeter-saver-deployment-74fb47d99d-swjhk to ip-10-0-16-182.ec2.internal
-  Warning  FailedMount  2s (x9 over 2m10s)  kubelet            MountVolume.SetUp failed for volume "secrets-store-inline" : rpc error: code = Unknown desc = failed to mount secrets store objects for pod greeter-app/greeter-saver-deployment-74fb47d99d-swjhk, err: rpc error: code = Unknown desc = us-east-1: An IAM role must be associated with service account default (namespace: greeter-app)
+  Warning  FailedMount  2s (x9 over 2m10s)  kubelet            MountVolume.SetUp failed for volume "secrets-store-inline" : rpc error: code = Unknown desc = failed to mount secrets store objects for pod greeter-app/greeter-saver-deployment-74fb47d99d-swjhk, err: rpc error: code = Unknown desc = <region-id>: An IAM role must be associated with service account default (namespace: greeter-app)
 ```
 
 This error means that:
@@ -456,19 +486,6 @@ This error means that:
 
 - Deployments can now have this Service Account associated, so their pods will have the right permissions to access AWS resources.
 
-### Validate IAM Role (EKS Worker Node) can access SSM
-
-- Through AWS Console, check IAM role associated with EKS Worker nodes.
-
-- Once you have the IAM role, review its attached policies to ensure that it allows the necessary SSM actions. The permissions typically needed include actions like:
-
-```bash
-  ssm:GetParameter
-  ssm:GetParameters
-  ssm:GetParameterHistory
-  ssm:DescribeParameters
-```
-
 ### Simulate Policy Evaluation
 
 You can simulate whether the role has permission to access your SSM parameter using the AWS CLI's simulation feature. For example:
@@ -477,7 +494,7 @@ You can simulate whether the role has permission to access your SSM parameter us
 aws iam simulate-principal-policy \
   --policy-source-arn arn:aws:iam::<account-id>:role/Karpenter-prod-eks-cluster-a-20250319204924635400000006 \
   --action-names ssm:GetParameter \
-  --resource-arns arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver/DB_URL
+  --resource-arns arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver-database-url
 ```
 
 ```bash
@@ -485,11 +502,7 @@ aws iam simulate-principal-policy \
   "EvaluationResults": [
     {
       "EvalActionName": "ssm:GetParameter",
-      "EvalResourceName": "arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver/DB_URL",
+      "EvalResourceName": "arn:aws:ssm:<region-id>:<account-id>:parameter/greeter-saver-database-url",
       "EvalDecision": "allowed",
 ...
 ```
-
-### Troubleshooting
-
-- Try deleting `greeter-saver-secret` and provisioning `greeter-saver` app again.
