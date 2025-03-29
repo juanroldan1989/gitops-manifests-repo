@@ -1,10 +1,9 @@
 # ArgoCD Setup
 
-## 1. Create the ArgoCD Namespace
+## 1. Create Namespace
 
 ```bash
-kubectl apply -f namespace.yaml
-kubectl create ns argocd
+kubectl apply -f argo-cd-ns.yaml
 ```
 
 ## 2. Deploy ArgoCD
@@ -18,7 +17,6 @@ kubectl create ns argocd
 - To deploy ArgoCD, use the following command:
 
 ```bash
-kubectl create ns argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
@@ -37,7 +35,7 @@ kubectl delete namespace argocd
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
-helm install argocd argo/argo-cd --namespace argocd --create-namespace -f values.yaml
+helm install argocd argo/argo-cd --namespace argocd --create-namespace -f config/values.yaml
 ```
 
 2. Enable ingress in the values file `server.ingress.enabled` and either:

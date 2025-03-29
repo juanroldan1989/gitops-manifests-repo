@@ -1,9 +1,11 @@
 # Argo Rollouts Setup
 
+TODO: Argo Rollouts can be also provisioned as an Application within ArgoCD.
+
 ## 1. Create Namespace
 
 ```bash
-kubectl create ns argo-rollouts
+kubectl apply -f argo-rollouts-ns.yaml
 ```
 
 ## 2. Deploy Argo Rollouts
@@ -17,7 +19,6 @@ kubectl create ns argo-rollouts
 - To deploy Argo Rollouts, use the following command:
 
 ```bash
-kubectl create ns argo-rollouts
 kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
 kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/dashboard-install.yaml
 ```
@@ -39,7 +40,7 @@ kubectl delete namespace argo-rollouts
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
-helm install argo-rollouts argo/argo-rollouts --namespace argo-rollouts --create-namespace -f values.yaml
+helm install argo-rollouts argo/argo-rollouts --namespace argo-rollouts --create-namespace -f config/values.yaml
 ```
 
 2. Removing `Argo Rollout` resources:
