@@ -1,5 +1,7 @@
 # Greeter Saver App
 
+![Screenshot 2025-03-22 at 20 40 02](https://github.com/user-attachments/assets/413e7e17-7116-46fa-a0f6-054225a58d61)
+
 ## 1. Provision Infrastructure
 
 ```bash
