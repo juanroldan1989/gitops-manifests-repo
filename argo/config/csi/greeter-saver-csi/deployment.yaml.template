@@ -16,6 +16,9 @@ spec:
       labels:
         app: {{ .Values.app.name }}
     spec:
+{{- if .Values.secrets.enabled }}
+      serviceAccountName: greeter-saver-sa
+{{- end }}
       containers:
       - name: {{ .Values.app.name }}
         image: "{{ .Values.app.image }}"
@@ -35,11 +38,17 @@ spec:
 {{- if $env.secret }}
             valueFrom:
               secretKeyRef:
-                name: {{ $env.secretName }}
-                key: {{ $env.secretKey }}
+                name: {{ $.Values.app.name | lower }}-secret
+                key: {{ $env.name | lower | replace "_" "-" }}
 {{- else }}
             value: {{ $env.value | quote }}
 {{- end }}
+{{- end }}
+{{- if .Values.secrets.enabled }}
+        volumeMounts:
+        - mountPath: /mnt/secrets-store
+          name: secrets-store-inline
+          readOnly: true
 {{- end }}
         readinessProbe:
           httpGet:
@@ -57,6 +66,15 @@ spec:
           periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
           timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
           failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+{{- if .Values.secrets.enabled }}
+      volumes:
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "ssm-db-credentials"
+        name: secrets-store-inline
+{{- end }}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

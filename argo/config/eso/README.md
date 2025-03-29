@@ -1,5 +1,7 @@
 # External Secret Operator
 
+TODO: move this setup to `config` folder with `argo`, or within `bootstrap` folder
+
 https://external-secrets.io/latest/introduction/getting-started/
 
 ## Setup
@@ -50,8 +52,8 @@ subjects:
 ```bash
 kubectl create secret generic awssm-secret \
   -n external-secrets \
-  --from-literal=access-key=<your-access-key-id> \
-  --from-literal=secret-access-key=<your-secret-access-key>
+  --from-literal=access-key=<access-key> \
+  --from-literal=secret-access-key=<secret-access-key>
 ```
 
 4. Create a Cluster Secret Store to centralize AWS Provider connection:

@@ -17,21 +17,12 @@ ingress:
 resourceQuota:
   enabled: true
 
-secrets:
-  enabled: true
-
 env:
   - name: NAME_SERVICE_URL
-    value: "http://name:5001/name"
+    value: "http://name:5001/name"         # non-sensitive env var
   - name: GREETING_SERVICE_URL
-    value: "http://greeting:5002/greeting"
-
-  # for local development, we will reference a local database
-  # - name: DATABASE_URL
-  #   value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
-
-  # for production, we will reference a RDS instance using AWS SSM
+    value: "http://greeting:5002/greeting" # non-sensitive env var
   - name: DATABASE_URL
-    secret: true
-    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
-    provider: "AWS_SSM"                       # kept for reference only
+    secret: true                           # if true, the value will be taken from an AWS secret
+    secretName: greeter-saver-secret       # `name` of secret in AWS and `name` (K8S Secret automatically created with the same name)
+    secretKey: database-url                # `key` of secret in AWS and `key` in Kubernetes secret (K8S Secret key automatically added within the secret)
