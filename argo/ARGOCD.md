@@ -80,7 +80,11 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 4. Login using the username: `admin` and the decoded password.
 
-## 5. Provision Applications inside K8S Cluster using ArgoCD
+## 5. External Secrets Operator (ESO) Setup / Configuration
+
+Steps defined within [ESO](/argo/ESO.md)
+
+## 6. Provision Applications inside K8S Cluster using ArgoCD
 
 ```bash
 cd argocd
@@ -100,7 +104,7 @@ application.argoproj.io/argocd-name-app created
 <img width="829" alt="Screenshot 2025-03-08 at 11 57 10" src="https://github.com/user-attachments/assets/e87aaa06-c6d8-4cef-a81c-a433dceba72f" />
 
 
-## 6. Automating Updates via GitOps
+## 7. Automating Updates via GitOps
 
 Automating Changes from the Source Repository:
 
@@ -112,7 +116,7 @@ Automating Changes from the Source Repository:
 
 4. Ensuring the **EKS cluster state always matches the state defined** in our `gitops-manifests-repo`.
 
-## 7. Removing resources
+## 8. Removing resources
 
 ### ArgoCD Applications
 

@@ -1,12 +1,33 @@
-# External Secret Operator
-
-TODO: move this setup to `config` folder with `argo`, or within `bootstrap` folder
+# External Secret Operator (ESO)
 
 https://external-secrets.io/latest/introduction/getting-started/
 
 ## Setup
 
-1. Install External Secrets via Helm:
+1. Create `external-secrets` Namespace:
+
+```bash
+kubectl create ns external-secrets
+```
+
+2. Store `AWS Credentials` within Secret in `external-secrets` namespace:
+
+```bash
+kubectl create secret generic awssm-secret \
+  -n external-secrets \
+  --from-literal=access-key=<access-key> \
+  --from-literal=secret-access-key=<secret-access-key>
+```
+
+3. Install External Secrets Operator (ESO):
+
+- Via ArgoCD:
+
+```bash
+kubectl apply -f argo/apps/eso.yaml
+```
+
+- Via Helm:
 
 ```bash
 helm repo add external-secrets https://charts.external-secrets.io
@@ -17,11 +38,19 @@ helm install external-secrets \
     --create-namespace
 ```
 
-2. Ensure External Secrets controller has permission to read secrets in `external-secrets` namespace
+4. Ensure External Secrets controller has permission to read secrets in `external-secrets` namespace:
 
-- If you're using RBAC (most setups do), the controller might not have permission to read secrets from the external-secrets namespace.
+- If you're using RBAC (most setups do), the controller might not have permission to read secrets from the `external-secrets` namespace.
 
-- You can fix this by creating a ClusterRole and ClusterRoleBinding like this:
+- You can fix this by creating a `ClusterRole` and `ClusterRoleBinding`:
+
+- Via ArgoCD:
+
+```bash
+kubectl apply -f argo/apps/eso-config.yaml
+```
+
+- Or manually:
 
 ```bash
 apiVersion: rbac.authorization.k8s.io/v1
@@ -47,16 +76,16 @@ subjects:
     namespace: external-secrets
 ```
 
-3. Store `AWS Credentials` within Secret in `external-secrets` namespace:
+
+5. Create a `Cluster Secret Store` to **centralize AWS Provider connection**:
+
+- Via ArgoCD (already included in step 4)
 
 ```bash
-kubectl create secret generic awssm-secret \
-  -n external-secrets \
-  --from-literal=access-key=<access-key> \
-  --from-literal=secret-access-key=<secret-access-key>
+kubectl apply -f argo/apps/eso-config.yaml
 ```
 
-4. Create a Cluster Secret Store to centralize AWS Provider connection:
+- Or manually:
 
 ```bash
 apiVersion: external-secrets.io/v1beta1
@@ -80,24 +109,36 @@ spec:
             namespace: external-secrets
 ```
 
-5. Create `External Secret` resource:
+6. Create `External Secret` resource:
 
-- This resource will take care of fetching secrets from AWS
-- And creating the Kubernetes Secret needed by our applications
+- This resource will **fetch secrets from AWS**
+- And **create Kubernetes Secret** resources needed by our applications
+- This step is already generated for every `Deployment` resource provisioned, based on the custom `values.yaml` provided for each application:
+
+```bash
+...
+env:
+  - name: DATABASE_URL
+    secret: true
+    secretName: greeter-saver-secret
+    secretKey: database-url
+```
+
+- An `ExternalSecret` resource can also be created manully if needed:
 
 ```bash
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: greeter-app-external-secret
-  namespace: greeter-app
+  name: sample-external-secret
+  namespace: sample-ns
 spec:
   refreshInterval: 1m
   secretStoreRef:
     name: cluster-secretstore-sample
     kind: ClusterSecretStore
   target:
-    name: greeter-saver-secret          # Name of the resulting Kubernetes Secret
+    name: sample-app-secret             # Name of the resulting Kubernetes Secret
     creationPolicy: Owner
   data:
     - secretKey: database-url           # The key name in the resulting Kubernetes Secret
