@@ -148,25 +148,21 @@ mydatabase=# SELECT * FROM "greetings";
 
 ## 7. Secret values
 
+- Once AWS Secret has been created in AWS:
+
 - `ENV` variables (**sensitive** and **non-sensitive** ones) can be defined within a single block:
 
 ```bash
 ...
 env:
   - name: NAME_SERVICE_URL
-    value: "http://name:5001/name"
+    value: "http://name:5001/name"         # non-sensitive env var
   - name: GREETING_SERVICE_URL
-    value: "http://greeting:5002/greeting"
-  # for local development, we will reference a local database
-  # - name: DATABASE_URL
-  #   value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
-
-  # for production, we will reference a RDS instance using AWS SSM
+    value: "http://greeting:5002/greeting" # non-sensitive env var
   - name: DATABASE_URL
-    secret: true
-    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
-    provider: "AWS_SSM"                       # kept for reference only
-
+    secret: true                           # if true, the value will be taken from an AWS secret
+    secretName: greeter-saver-secret       # `name` of secret in AWS and `name` (K8S Secret automatically created with the same name)
+    secretKey: database-url                # `key` of secret in AWS and `key` in Kubernetes secret (K8S Secret key automatically added within the secret)
 ```
 
 - Based on the above setup:
@@ -178,43 +174,8 @@ env:
 
 ### For `sensitive` values
 
-#### `local` development, we will reference a local database:
+1. For `local` and `production` mode, AWS Secrets are **fetched and handled in the same way.**
+2. [External Secrets Operator](/argo/ESO.md) makes this possible.
 
-```bash
-  - name: DATABASE_URL
-    value: "postgresql://user:password@192.168.178.131:5432/mydatabase"
-```
-
-- No Kubernetes `secret` resource is created.
-
-#### `production` deployment, we will reference a RDS Instance through a SSM secret:
-
-```bash
-  - name: DATABASE_URL
-    secret: true
-    secret_name: "GREETER_SAVER_DATABASE_URL" # kept for reference only
-    provider: "AWS_SSM"                       # kept for reference only
-```
-
-1. `DATABASE_URL` is set through an external secrets provider (e.g.: AWS SSM).
-
-2. Secret `aws-ssm-database-url` will automatically be created by the `application` Helm chart:
-
-```bash
-kubectl describe secret greeter-saver-secret -n greeter-app
-Name:         greeter-saver-secret
-Namespace:    greeter-app
-Labels:       app.kubernetes.io/managed-by=Helm
-Annotations:  meta.helm.sh/release-name: greeter-saver
-              meta.helm.sh/release-namespace: greeter-app
-
-Type:  Opaque
-
-Data
-====
-database-url:  0 bytes
-```
-
-3. An **empty** value string will be populated for the secret. Allowing your external process (like the `AWS Secrets Store CSI Driver`) to populate it later.
-
-- Kubernetes resource **names** must follow `RFC 1123`, which allows only lowercase alphanumeric characters, '-' and '.'
+- For every `Deployment` resource created that contains `env` section with at least 1 variable with `secret: true` defined,
+- A `Kubernetes Secret` resource is automatically created and managed by ESO.
