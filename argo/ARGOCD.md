@@ -59,7 +59,7 @@ kubectl delete namespace argocd
 kubectl apply -f ingress.yaml
 ```
 
-- Enforce HTTPS connections within external ALB -> [steps](/argocd/INGRESS.md)
+- Enforce HTTPS connections within external ALB -> [steps](/argo/config/INGRESS.md)
 
 ## 4. Access the ArgoCD UI
 
@@ -87,7 +87,7 @@ cd argocd
 
 kubectl apply -R -f apps
 
-application.argoproj.io/argocd-custom-app created
+application.argoproj.io/argocd-my-sample-app created
 application.argoproj.io/argocd-greeter-app created
 application.argoproj.io/argocd-greeting-app created
 application.argoproj.io/argocd-name-app created
@@ -131,7 +131,7 @@ kubectl delete -R -f argocd
 - `kubectl`: Use this command to manually delete all underlying resources:
 
 ```bash
-kubectl delete all -n custom-app
+kubectl delete all -n my-sample-app
 kubectl delete all -n greeter-app
 ```
 

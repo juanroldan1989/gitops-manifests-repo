@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/juanroldan1989/gitops-manifests-repo'
     targetRevision: main
-    path: manifests/application # path to Helm chart
+    path: manifests/base-application # path to Helm chart
     helm:
       valueFiles:
         - ../greeter-app/values.yaml  # overrides for `greeter` app

@@ -1,4 +1,4 @@
-namespace: custom-app
+namespace: my-sample-app
 createNamespace: true
 
 app:

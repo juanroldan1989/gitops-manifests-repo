@@ -44,14 +44,24 @@ Our GitOps workflow is built on **two core repositories:**
 
 3. **Manifest Updates in Manifests repo:**
 
-- The new Pull Request created contains updates to the corresponding application manifests (updating the image tag in `/manifests/greeter-app/deployment.yaml`).
+- The new Pull Request created contains updates to the corresponding application manifests (e.g.: updating the **image tag** in `/manifests/greeter-app/values.yaml`):
+
+```bash
+...
+app:
+  name: greeter
+  image: juanroldan1989/greeter:0.0.1
+  port: 5000
+...
+```
+
 - This Pull Request gets approved and merged in [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo)
 
 4. **ArgoCD Synchronization:**
 
-- `ArgoCD`, configured to watch the manifests repository,
-- detects these changes
-- and synchronizes the `Kubernetes` cluster (`EKS`) **to match the desired state in GIT**
+- `ArgoCD` is configured to watch the manifests repository.
+- `ArgoCD` detects these changes to the `/manifests/greeter-app/values.yaml`.
+- `ArgoCD` synchronizes the `Kubernetes` cluster (`EKS`) **to match the desired state in GIT** by updating the Kubernetes Deployment.
 
 <br>
 
@@ -84,7 +94,7 @@ For details instructions in 2 ways of handling infrastructure's **state**, pleas
 
 ### 3. Install ArgoCD in your `EKS` Cluster
 
-Follow the steps in the [ArgoCD setup guide](/argocd/README.md)
+Follow the steps in the [ArgoCD setup guide](/argo/ARGOCD.md)
 
 ### 4. Source Code repo: Application Development & Deployment
 
@@ -94,7 +104,7 @@ Follow the steps in the [ArgoCD setup guide](/argocd/README.md)
 
 ### 5. Manage deployments in `manifests` repo: ArgoCD / ArgoRollouts
 
-Follow the steps in the [ArgoRollouts setup guide](/argocd/ROLLOUTS.md)
+Follow the steps in the [ArgoRollouts setup guide](/argo/ROLLOUTS.md)
 
 ## Key Benefits
 

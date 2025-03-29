@@ -297,7 +297,7 @@ clusterrolebinding.rbac.authorization.k8s.io/secrets-store-csi-driver-binding cr
 
 ## 8. Provision Apps within K8S Cluster
 
-- Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argocd/README.md)
+- Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argo/ARGOCD.md)
 
 - Then provision apps:
 

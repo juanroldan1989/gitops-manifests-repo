@@ -51,7 +51,7 @@ en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
 
 ```bash
 helm upgrade \
-  --install name ./manifests/application \
+  --install name ./manifests/base-application \
   --namespace greeter-app \
   --values ./manifests/name-app/values.yaml
 ```
@@ -60,7 +60,7 @@ helm upgrade \
 
 ```bash
 helm upgrade \
-  --install greeting ./manifests/application \
+  --install greeting ./manifests/base-application \
   --namespace greeter-app \
   --values ./manifests/greeting-app/values.yaml
 ```
@@ -69,7 +69,7 @@ helm upgrade \
 
 ```bash
 helm upgrade \
-  --install greeter-saver ./manifests/application \
+  --install greeter-saver ./manifests/base-application \
   --namespace greeter-app \
   --values ./manifests/greeter-saver-app/values.yaml
 ```
@@ -84,7 +84,7 @@ helm uninstall greeter-saver --namespace greeter-app
 
 #### Using `ArgoCD` apps
 
-- Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argocd/README.md)
+- Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argo/ARGOCD.md)
 
 - Then provision apps:
 
