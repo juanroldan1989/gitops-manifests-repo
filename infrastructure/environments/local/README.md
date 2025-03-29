@@ -150,6 +150,8 @@ mydatabase=# SELECT * FROM "greetings";
 
 - Once AWS Secret has been created in AWS:
 
+<img width="1301" alt="Screenshot 2025-03-29 at 19 06 18" src="https://github.com/user-attachments/assets/0e6228ab-4f87-48b7-8870-6859ed31c806" />
+
 - `ENV` variables (**sensitive** and **non-sensitive** ones) can be defined within a single block:
 
 ```bash
