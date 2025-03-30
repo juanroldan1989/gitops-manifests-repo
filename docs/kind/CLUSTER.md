@@ -1,6 +1,8 @@
-# Local Cluster Setup with kind
+# Local Cluster Setup with `Kind`
 
-If you want to quickly test your apps on a local Kubernetes cluster, you can use kind (Kubernetes IN Docker). Follow these steps:
+If you want to quickly test your apps on a local Kubernetes cluster, you can use `kind` (Kubernetes IN Docker).
+
+Follow these steps:
 
 ## Prerequisites
 

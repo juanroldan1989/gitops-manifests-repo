@@ -2,7 +2,7 @@
 
 There are 2 ways to provision Kuberentes applications:
 
-## Helm
+## 1. Helm
 
 1. Create namespace for application's resources:
 
@@ -63,7 +63,7 @@ kubectl get all -n my-sample-app
 No resources found in my-sample-app namespace.
 ```
 
-## ArgoCD Applications
+## 1. ArgoCD Applications
 
 Use `ArgoCD` application to provision your applications within the cluster.
 

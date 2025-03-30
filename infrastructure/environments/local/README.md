@@ -1,183 +1,89 @@
-# Greeter Saver App
+# `local` environment
 
-![Screenshot 2025-03-22 at 20 40 02](https://github.com/user-attachments/assets/413e7e17-7116-46fa-a0f6-054225a58d61)
+## ArgoCD Dashboard
 
-## 1. Provision database
+<img width="1718" alt="Screenshot 2025-03-29 at 18 45 50" src="https://github.com/user-attachments/assets/9d4bbc64-96d2-4ac0-b708-6845811766c0" />
 
-```bash
-docker run --name local-postgres \
-  -e POSTGRES_USER=user \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=mydatabase \
-  -p 5432:5432 \
-  -d postgres:13-alpine
-```
+## Manual Provisioning
 
-## 2. Setup `env` variables within App
-
-Within `values.yaml` file, adjust localhost's IP:
+1. [Create `kind` cluster](/docs/kind/CLUSTER.md)
+1. [ArgoCD](/docs/argo/ARGOCD.md)
+2. [ArgoRollouts](/docs/argo/ARGOROLLOUTS.md)
+3. [External Secrets Operator](/docs/eso/README.md)
+4. Provision Apps as needed with:
 
 ```bash
-...
-
-- name: DATABASE_URL
-  value: "postgresql://user:password@<local-ip>:5432/mydatabase"
+kubectl apply -f argo/apps/<app-name>.yaml
 ```
 
-- `<local-ip>` obtained through:
+## Fully Automated Provisioning
 
-```
-ifconfig
-```
+This script automates the full provisioning of a local `Kubernetes` cluster using `kind`, installing **essential GitOps** components and `applications` in a **repeatable and consistent way.**
+
+1. **Creates a `kind` Kubernetes cluster** named `gitops-dev` with:
+   - 1 control-plane node with port mappings for HTTP/HTTPS
+   - 2 worker nodes
+
+2. **Reads AWS credentials** from your local `~/.aws/credentials` file (default profile) and creates a Kubernetes `Secret` (`awssm-secret`) in the `external-secrets` namespace.
+
+3. **Creates required namespaces** for tools:
+   - `argocd`
+   - `argo-rollouts`
+   - `external-secrets`
+
+4. **Installs core GitOps components**:
+   - [ArgoCD](https://argo-cd.readthedocs.io/): `GitOps` controller for Kubernetes
+   - [Argo Rollouts](https://argoproj.github.io/argo-rollouts/): `Progressive` delivery controller
+   - [External Secrets Operator (ESO)](https://external-secrets.io/): Sync secrets from **AWS Secrets Manager or SSM** into `Kubernetes` cluster.
+
+5. **Deploys your ArgoCD applications** from YAML manifests located in the `argo/apps/` folder.
+   - Supports deploying **all apps** or a **specific list**.
+
+## Repo Structure required
 
 ```bash
-...
-en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
-...
-	inet 192.168.178.131 netmask 0xffffff00 broadcast 192.168.178.255
-	status: active
-...
+root/
+├── bootstrap.sh                  # <-- This script
+└── argo/
+    └── apps/
+        ├── eso.yaml
+        ├── eso-config.yaml
+        ├── greeter-app.yaml
+        ├── greeting-app.yaml
+        └── name-app.yaml
+        ...
 ```
 
-```
-192.168.178.131
-```
+## Usage
 
-## 3. Provision Apps within K8S Cluster
-
-#### Using `application` Helm chart
-
-- Provision `name` app:
+### Install all apps:
 
 ```bash
-helm upgrade \
-  --install name ./manifests/base-application \
-  --namespace greeter-app \
-  --values ./manifests/name-app/values.yaml
+./bootstrap.sh
 ```
 
-- Provision `greeting` app:
+### Install specific apps only:
 
 ```bash
-helm upgrade \
-  --install greeting ./manifests/base-application \
-  --namespace greeter-app \
-  --values ./manifests/greeting-app/values.yaml
+./bootstrap.sh --apps greeter-app name-app
 ```
 
-- Provision `greeter-saver` app:
+> This is similar to: `docker-compose up greeter-app name-app`
 
-```bash
-helm upgrade \
-  --install greeter-saver ./manifests/base-application \
-  --namespace greeter-app \
-  --values ./manifests/greeter-saver-app/values.yaml
-```
+### Setup External AWS Resources
 
-- Removing the apps:
+- Databases (RDS Instance)
+- Secrets (AWS Secrets Manager / SSM Parameter Store)
 
-```bash
-helm uninstall greeting --namespace greeter-app
-helm uninstall name --namespace greeter-app
-helm uninstall greeter-saver --namespace greeter-app
-```
+## AWS Secret Handling
 
-#### Using `ArgoCD` apps
+- The script extracts AWS credentials from the `default` profile in `~/.aws/credentials`.
+- It creates a `Secret` called `awssm-secret` in `external-secrets` namespace.
+- This is used by ESO to fetch secrets from AWS.
 
-- Validate `argocd` and `argo-rollouts` are provisioned -> [steps](/argo/ARGOCD.md)
+## Requirements
 
-- Then provision apps:
-
-```bash
-kubectl apply -f argocd/apps/greeter-saver-app.yaml
-kubectl apply -f argocd/apps/name-app.yaml
-kubectl apply -f argocd/apps/greeting-app.yaml
-```
-
-- Removing the apps:
-
-```bash
-kubectl delete -f argocd/apps/greeter-saver-app.yaml
-kubectl delete -f argocd/apps/name-app.yaml
-kubectl delete -f argocd/apps/greeting-app.yaml
-```
-
-## 4. Launch `greeter-saver` app
-
-```bash
-kubectl port-forward svc/greeter-saver 5008:5008 -n greeter-app
-```
-
-## 5. Access App
-
-```bash
-curl localhost:5008/greet
-
-{"message":"Salutations, Charlie!"}
-```
-
-## 6. Validate data stored properly
-
-```bash
-docker exec -it local-postgres psql -U user -d mydatabase
-
-psql (13.20)
-Type "help" for help.
-
-mydatabase=# SELECT * FROM "greetings";
- id |        message        |         created_at
-----+-----------------------+----------------------------
-  1 | Hey, Bob!             | 2025-03-15 12:37:23.400845
-  2 | Hi, Daisy!            | 2025-03-15 12:37:24.197722
-  3 | Hello, Eve!           | 2025-03-15 12:37:24.53659
-  4 | Salutations, Eve!     | 2025-03-15 12:37:24.835507
-  5 | Salutations, Daisy!   | 2025-03-15 12:37:25.076832
-  6 | Greetings, Charlie!   | 2025-03-15 12:37:25.376727
-  7 | Greetings, Daisy!     | 2025-03-15 12:37:25.629115
-  8 | Hey, Daisy!           | 2025-03-15 12:37:25.821496
-  9 | Hello, Alice!         | 2025-03-15 12:37:26.027783
- 10 | Hello, Alice!         | 2025-03-15 12:37:26.333541
- 11 | Salutations, Bob!     | 2025-03-15 12:37:26.547872
- 12 | Greetings, Daisy!     | 2025-03-15 12:37:26.766079
- 13 | Hey, Eve!             | 2025-03-15 12:37:27.032531
- 14 | Greetings, Bob!       | 2025-03-15 12:37:27.218642
- 15 | Salutations, Bob!     | 2025-03-15 12:37:27.401385
- 16 | Salutations, Charlie! | 2025-03-15 12:37:44.923726
-(16 rows)
-```
-
-## 7. Secret values
-
-- Once AWS Secret has been created in AWS:
-
-<img width="1301" alt="Screenshot 2025-03-29 at 19 06 18" src="https://github.com/user-attachments/assets/0e6228ab-4f87-48b7-8870-6859ed31c806" />
-
-- `ENV` variables (**sensitive** and **non-sensitive** ones) can be defined within a single block:
-
-```bash
-...
-env:
-  - name: NAME_SERVICE_URL
-    value: "http://name:5001/name"         # non-sensitive env var
-  - name: GREETING_SERVICE_URL
-    value: "http://greeting:5002/greeting" # non-sensitive env var
-  - name: DATABASE_URL
-    secret: true                           # if true, the value will be taken from an AWS secret
-    secretName: greeter-saver-secret       # `name` of secret in AWS and `name` (K8S Secret automatically created with the same name)
-    secretKey: database-url                # `key` of secret in AWS and `key` in Kubernetes secret (K8S Secret key automatically added within the secret)
-```
-
-- Based on the above setup:
-
-### For `non-sensitive` values
-
-1. `NAME_SERVICE_URL` is passed directly as an inline value to the `deployment` K8S resource.
-2. `GREETING_SERVICE_URL` is passed directly as an inline value to the `deployment` K8S resource.
-
-### For `sensitive` values
-
-1. For `local` and `production` mode, AWS Secrets are **fetched and handled in the same way.**
-2. [External Secrets Operator](/argo/ESO.md) makes this possible.
-
-- For every `Deployment` resource created that contains `env` section with at least 1 variable with `secret: true` defined,
-- A `Kubernetes Secret` resource is automatically created and managed by ESO.
+- [Docker](https://www.docker.com/) + [kind](https://kind.sigs.k8s.io/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [AWS CLI](https://aws.amazon.com/cli/) configured locally
+- Internet access to pull manifests

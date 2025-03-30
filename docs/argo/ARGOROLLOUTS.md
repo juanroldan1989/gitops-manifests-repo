@@ -1,7 +1,5 @@
 # Argo Rollouts Setup
 
-TODO: Argo Rollouts can be also provisioned as an Application within ArgoCD.
-
 ## 1. Create Namespace
 
 ```bash
