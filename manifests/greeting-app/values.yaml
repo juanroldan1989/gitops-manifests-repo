@@ -1,4 +1,5 @@
 namespace: greeter-app
+
 app:
   name: greeting
   image: juanroldan1989/greeting:0.0.1
