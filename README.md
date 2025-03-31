@@ -90,19 +90,27 @@ Using ArgoCD to implement GitOps offers several benefits:
 
 ## Disaster Recovery
 
-Steps to fully restore the entire platform (Infrastructure + K8S Cluster + Applications) -> [steps](/docs/recovery/README.md)
+Steps to fully restore the entire platform (`Infrastructure` + `K8S Cluster` + `Applications`) -> [steps](/docs/recovery/README.md)
 
-## Work in progress
+## Work in progress (TODO)
 
-- Monitor and Observe: Set up comprehensive monitoring (e.g., Prometheus, Grafana, ELK/EFK stack) and logging to keep track of inter-service communications, performance, and failures.
+- **Monitor and Observe**:
 
-- Add several applications that rely in N microservices. E.g.: uber-eats
+-- Set up comprehensive monitoring (e.g., `Prometheus`, `Grafana`, `ELK/EFK` stack) and logging to keep track of inter-service communications, performance, and failures. Setup in a way it can be re-used to any other applications.
 
-- Implemement ArgoCD Application Set: 1 AppSet -> N Applications. To organise better the UI space and clarity on resources.
+-- [Charts reference](https://www.youtube.com/watch?v=cL0biQxREFI&list=WL&index=1&t=521s).
 
-- Adopt a Service Mesh: For internal communications and to provide observability, security, and resilience among 50+ services, a service mesh can be invaluable.
+-- Generate built-in dashboards: `Example App - HPA Replicas`, `Example App - CPU Usage - Avg per Cluster`, `Example App - Memory Usage - Avg per Cluster`, `Example App - CPU Throttling`, and more.
 
-- Monitor Kubernetes Cloud Costs: https://www.kubecost.com/install#show-instructions
+-- Generate "templates" with different sets of dashboards.
+
+- **Add several applications** that rely in N microservices. E.g.: uber-eats
+
+- **Implemement ArgoCD Application Set**: 1 AppSet -> N Applications. To organise better the UI space and clarity on resources.
+
+- **Adopt a Service Mesh**: For internal communications and to provide observability, security, and resilience among 50+ services, a service mesh can be invaluable.
+
+- **Monitor Kubernetes Cloud** Costs: https://www.kubecost.com/install#show-instructions
 
 ## Contributing
 
