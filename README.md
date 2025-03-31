@@ -94,6 +94,8 @@ Steps to fully restore the entire platform (`Infrastructure` + `K8S Cluster` + `
 
 ## Work in progress (TODO)
 
+- Ephemeral environments setup within Pull Request.
+
 - **Monitor and Observe**:
 
 -- Set up comprehensive monitoring (e.g., `Prometheus`, `Grafana`, `ELK/EFK` stack) and logging to keep track of inter-service communications, performance, and failures. Setup in a way it can be re-used to any other applications.

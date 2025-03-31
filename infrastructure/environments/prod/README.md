@@ -1,4 +1,4 @@
-# `local` environment
+# `production` environment
 
 ## ArgoCD Dashboard
 

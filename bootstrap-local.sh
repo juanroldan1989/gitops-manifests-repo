@@ -49,19 +49,22 @@ kubectl create ns argo-rollouts || true
 kubectl create ns external-secrets || true
 
 # === Step 4: Create AWS credential secret ===
-echo "> Creating AWS credential secret in Kubernetes"
-kubectl create secret generic awssm-secret \
-  -n external-secrets \
-  --from-literal=access-key="$ACCESS_KEY" \
-  --from-literal=secret-access-key="$SECRET_KEY"
+echo "> Creating AWS credential secret in Kubernetes (only if not already created)"
+
+kubectl create secret generic aws-credentials \
+  --namespace external-secrets \
+  --from-literal=aws_access_key_id="$ACCESS_KEY" \
+  --from-literal=aws_secret_access_key="$SECRET_KEY" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # === Step 5: Install core tools ===
-echo "> Installing ArgoCD"
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-echo "> Installing ArgoRollouts"
-kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
-kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/dashboard-install.yaml
+echo "> Installing ArgoCD (only if not already installed)"
+if ! kubectl get pods -n argocd | grep -q argocd-server; then
+  echo "➡️ ArgoCD not found, installing..."
+  kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+else
+  echo "➡️ ArgoCD already installed, skipping..."
+fi
 
 # === Step 6: Install ESO via ArgoCD ===
 echo "> Installing External Secrets Operator (ESO) via ArgoCD"
@@ -89,4 +92,4 @@ else
   done
 fi
 
-echo "✅ Cluster '$CLUSTER_NAME' fully bootstrapped with ArgoCD, ESO, ArgoRollouts and Applications"
+echo "✅ Cluster '$CLUSTER_NAME' fully bootstrapped with ArgoCD, ESO and Applications"
