@@ -53,10 +53,10 @@ kubectl create ns external-secrets || true
 # === Step 5: Create AWS credential secret ===
 echo "> Creating AWS credential secret in Kubernetes (only if not already created)"
 
-kubectl create secret generic aws-credentials \
+kubectl create secret generic awssm-secret \
   --namespace external-secrets \
-  --from-literal=aws_access_key_id="$ACCESS_KEY" \
-  --from-literal=aws_secret_access_key="$SECRET_KEY" \
+  --from-literal=access-key="$ACCESS_KEY" \
+  --from-literal=secret-access-key="$SECRET_KEY" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # === Step 6: Install core tools ===
