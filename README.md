@@ -10,11 +10,59 @@
 1. [Contributing](#contributing)
 1. [License](#license)
 
-<hr>
+# Repository structure
 
-- This repository contains `Kubernetes` manifests for our `GitOps` workflow.
-- Changes to these manifests are managed declaratively via `Git` and deployed automatically using `ArgoCD`.
-- Supporting infra is provisioned through `Terraform`, `Terragrunt` and `AWS`.
+```bash
+├── bootstrap/                            # 🔧 Bootstrap tools for any environment
+│   ├── bootstrap.sh                      # Unified script to install ArgoCD, ESO, and deploy apps
+│   ├── values.yaml                       # ArgoCD Helm values (used in both local and EKS)
+│   └── kind-cluster.yaml                 # Kind config with taints for local testing
+│
+├── infrastructure/                       # 🏗️ Infra managed by Terraform + Terragrunt
+│   ├── environments/
+│   │   ├── local/
+│   │   ├── prod/
+│   │   ├── qa/
+│   │   └── sandbox/
+│   └── terragrunt.hcl
+│
+├── argo/                                 # 🧠 ArgoCD applications + ESO setup
+│   ├── apps/
+│   │   ├── eso.yaml
+│   │   ├── eso-config.yaml
+│   │   ├── greeter-app.yaml
+│   │   ├── greeter-saver-app.yaml
+│   │   ├── greeting-app.yaml
+│   │   └── name-app.yaml
+│   └── config/
+│       └── values.yaml                   # (Optional) Helm values per ArgoCD app (if templating)
+│
+├── manifests/                            # 📦 Helm charts or templates per app
+│   ├── base-application/                 # Shared Helm chart used by all apps
+│   │   ├── Chart.yaml
+│   │   └── templates/
+│   │       └── ...
+│   ├── greeter-app/
+│   ├── greeter-saver-app/
+│   ├── greeting-app/
+│   └── name-app/
+│       └── values.yaml
+│
+├── docs/                                 # 📘 Developer and DevOps documentation
+│   ├── kind.md                           # Guide for local Kind cluster setup
+│   └── argo/
+│       ├── ARGOCD.md
+│       ├── ARGOROLLOUTS.md
+│       └── INGRESS.md
+│
+├── .github/                              # 🤖 Optional: for future GitHub Actions CI/CD
+│   └── workflows/
+│       └── (ephemeral-env-preview.yml)   # (Future idea: create preview envs per PR)
+│
+├── README.md
+├── LICENSE
+└── CONTRIBUTING.md
+```
 
 ## Workflow Overview
 
@@ -69,8 +117,79 @@ app:
 
 ## Setup
 
-- [`local` setup guide](/infrastructure/environments/local/README.md)
-- [`production` setup guide](/infrastructure/environments/prod/README.md)
+This guide helps new engineers to:
+
+- spin up a **local or cloud environment**
+- provision **infrastructure**
+- install **GitOps** tools
+- **deploy** applications
+
+### Prerequisites
+
+Ensure you have the following installed locally:
+
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [kind](https://kind.sigs.k8s.io/)
+- [aws CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Terraform](https://developer.hashicorp.com/terraform/install)
+- [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
+- AWS credentials properly configured (e.g. via `~/.aws/credentials`)
+
+
+### Option 1: Local Development Environment (Kind)
+
+#### 1. Create the Kind cluster
+
+```bash
+kind create cluster --name gitops-dev --config bootstrap/kind/cluster.yaml
+```
+
+#### 2. Bootstrap the cluster with GitOps tools and applications
+
+```bash
+./bootstrap/bootstrap.sh --cluster-name gitops-dev
+```
+
+**To install specific apps:**
+
+```bash
+./bootstrap/bootstrap.sh --cluster-name gitops-dev --apps greeting-app name-app
+```
+
+### Option 2: Cloud Environment (AWS EKS)
+
+#### 1. Provision infrastructure using Terragrunt
+
+```bash
+cd infrastructure/environments/prod
+./infra-management.sh apply
+```
+
+#### 2. Update your local kubeconfig for the EKS cluster
+
+```bash
+aws eks update-kubeconfig --name prod-eks-cluster-a --region us-east-1
+```
+
+#### 3. Bootstrap the cluster with GitOps tools and applications
+
+```bash
+./bootstrap/bootstrap.sh --cluster-name prod-eks-cluster-a
+```
+
+**To install specific apps:**
+
+```bash
+./bootstrap/bootstrap.sh --cluster-name prod-eks-cluster-a --apps greeting-app name-app
+```
+
+### Useful Tips
+
+- All `GitOps` apps are defined in `argo/apps/`
+- Application manifests are parameterized in `manifests/`
+- Core `ArgoCD` and `ESO` values are defined in `bootstrap/values.yaml`
+- Local `Kind` nodes replicate production taints using `kind-cluster.yaml`
 
 ## Key Benefits
 
@@ -91,28 +210,6 @@ Using ArgoCD to implement GitOps offers several benefits:
 ## Disaster Recovery
 
 Steps to fully restore the entire platform (`Infrastructure` + `K8S Cluster` + `Applications`) -> [steps](/docs/recovery/README.md)
-
-## Work in progress (TODO)
-
-- Ephemeral environments setup within Pull Request.
-
-- **Monitor and Observe**:
-
--- Set up comprehensive monitoring (e.g., `Prometheus`, `Grafana`, `ELK/EFK` stack) and logging to keep track of inter-service communications, performance, and failures. Setup in a way it can be re-used to any other applications.
-
--- [Charts reference](https://www.youtube.com/watch?v=cL0biQxREFI&list=WL&index=1&t=521s).
-
--- Generate built-in dashboards: `Example App - HPA Replicas`, `Example App - CPU Usage - Avg per Cluster`, `Example App - Memory Usage - Avg per Cluster`, `Example App - CPU Throttling`, and more.
-
--- Generate "templates" with different sets of dashboards.
-
-- **Add several applications** that rely in N microservices. E.g.: uber-eats
-
-- **Implemement ArgoCD Application Set**: 1 AppSet -> N Applications. To organise better the UI space and clarity on resources.
-
-- **Adopt a Service Mesh**: For internal communications and to provide observability, security, and resilience among 50+ services, a service mesh can be invaluable.
-
-- **Monitor Kubernetes Cloud** Costs: https://www.kubecost.com/install#show-instructions
 
 ## Contributing
 
