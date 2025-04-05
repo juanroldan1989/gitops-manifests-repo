@@ -24,5 +24,5 @@ env:
     value: "http://greeting:5002/greeting" # non-sensitive env var
   - name: DATABASE_URL
     secret: true                           # if true, the value will be taken from an AWS secret
-    secretName: greeter-saver-secret       # `name` of secret in AWS and `name` (K8S Secret automatically created with the same name)
+    secretName: greeter-saver-secret       # `name` of secret in AWS (K8S Secret automatically created with the same name)
     secretKey: database-url                # `key` of secret in AWS and `key` in Kubernetes secret (K8S Secret key automatically added within the secret)

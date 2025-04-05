@@ -27,14 +27,16 @@ This script uses:
 
 For details instructions in 2 ways of handling infrastructure's **state**, please check [this guide](/docs/infra-state-management/README.md)
 
-### 3. Install ArgoCD in your `EKS` Cluster
+### 3. Provision addons and Deploy Apps in EKS Cluster
 
-Follow the steps in the [ArgoCD setup guide](/docs/argo/ARGOCD.md)
+All steps automated within `/bootstrap-prod.sh --apps name-app greeting-app greeter-saver-app`.
 
 ### 4. Source Code repo: Application Development & Deployment
 
 - Developers update source code in [gitops-source-repo](https://github.com/juanroldan1989/gitops-source-repo) and create a pull request (e.g., `"Changes to app-a: Landing page"`).
+
 - After merging, the pipeline will generate a pull request in [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo) for updating the manifest with the new `image` version.
+
 - Once merged, `ArgoCD` will **sync the new image to the EKS cluster** and automatically deploy the apps (e.g., `greeter-app`, `greeting-app`, `name-app`) from the `manifests` folder.
 
 ### 5. Manage deployments in `manifests` repo: ArgoCD / ArgoRollouts

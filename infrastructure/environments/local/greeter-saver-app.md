@@ -89,17 +89,17 @@ helm uninstall greeter-saver --namespace greeter-app
 - Then provision apps:
 
 ```bash
-kubectl apply -f argocd/apps/greeter-saver-app.yaml
-kubectl apply -f argocd/apps/name-app.yaml
-kubectl apply -f argocd/apps/greeting-app.yaml
+kubectl apply -f argo/apps/greeter-saver-app.yaml
+kubectl apply -f argo/apps/name-app.yaml
+kubectl apply -f argo/apps/greeting-app.yaml
 ```
 
 - Removing the apps:
 
 ```bash
-kubectl delete -f argocd/apps/greeter-saver-app.yaml
-kubectl delete -f argocd/apps/name-app.yaml
-kubectl delete -f argocd/apps/greeting-app.yaml
+kubectl delete -f argo/apps/greeter-saver-app.yaml
+kubectl delete -f argo/apps/name-app.yaml
+kubectl delete -f argo/apps/greeting-app.yaml
 ```
 
 ## 4. Launch `greeter-saver` app
@@ -163,7 +163,7 @@ env:
     value: "http://greeting:5002/greeting" # non-sensitive env var
   - name: DATABASE_URL
     secret: true                           # if true, the value will be taken from an AWS secret
-    secretName: greeter-saver-secret       # `name` of secret in AWS and `name` (K8S Secret automatically created with the same name)
+    secretName: greeter-saver-secret       # `name` of secret in AWS (K8S Secret automatically created with the same name)
     secretKey: database-url                # `key` of secret in AWS and `key` in Kubernetes secret (K8S Secret key automatically added within the secret)
 ```
 
